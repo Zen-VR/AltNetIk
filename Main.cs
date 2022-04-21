@@ -228,13 +228,13 @@ namespace AltNetIk
 
         public override void OnUiManagerInit(UiManager uiManager)
         {
-            var menu = uiManager.MainMenu.AddMenuPage("AltNetIK", "Settings for the ALtNetIK module");
+            var menu = uiManager.MainMenu.AddMenuPage("AltNetIK", "Settings for the AltNetIK module", ResourceManager.GetSprite("remod.cogwheel"));
             buttons["ConnectToggle"] = menu.AddButton("AltNetIk " + color("#ff0000", "Disconnected"), string.Empty,
-                ConnectToggle);
+                ConnectToggle, ResourceManager.GetSprite("remod.cogwheel"));
             buttons["ToggleSend"] = menu.AddButton("SendIK " + color("#00ff00", "Enabled"), string.Empty,
-                ToggleSend);
+                ToggleSend, ResourceManager.GetSprite("remod.cogwheel"));
             buttons["ToggleReceive"] = menu.AddButton("ReceiveIK " + color("#00ff00", "Enabled"), string.Empty,
-                ToggleReceive);
+                ToggleReceive, ResourceManager.GetSprite("remod.cogwheel"));
 
             hasQmUiInit = true;
         }
