@@ -23,6 +23,7 @@ using System.Net;
 using System.IO;
 using ReMod.Core;
 using ReMod.Core.Managers;
+using ReMod.Core.UI.QuickMenu;
 using ReMod.Core.VRChat;
 using VRC.Networking;
 using UnhollowerBaseLib;
@@ -116,12 +117,11 @@ namespace AltNetIk
 
         private static List<string> boneNames = new List<string>();
 
-        public static Dictionary<string, Transform> buttons = new Dictionary<string, Transform>();
+        public static Dictionary<string, ReMenuButton> buttons = new Dictionary<string, ReMenuButton>();
         public static string color(string c, string s) { return $"<color={c}>{s}</color>"; } // stolen from MintLily
 
         private static bool autoConnect;
         private static bool autoDisconnect;
-        private static bool qmButtonToggles;
         private static bool disableLerp;
         private static string serverIP;
         private static int serverPort;
@@ -153,7 +153,6 @@ namespace AltNetIk
             MelonPreferences.CreateCategory(ModID, ModID);
             MelonPreferences.CreateEntry(ModID, "AutoConnect", false, "Auto connect to server on startup");
             MelonPreferences.CreateEntry(ModID, "AutoDisconnect", false, "Auto disconnect when leaving world");
-            MelonPreferences.CreateEntry(ModID, "QMButtonToggles", false, "QM toggle buttons for Sender/Receiver");
             MelonPreferences.CreateEntry(ModID, "DisableLerp", false, "Disable receiver interpolation");
             MelonPreferences.CreateEntry(ModID, "ServerIP", "", "Server IP");
             MelonPreferences.CreateEntry(ModID, "ServerPort", 9050, "Server Port");
@@ -167,16 +166,13 @@ namespace AltNetIk
 
             boneNames = HumanTrait.BoneName.ToList();
 
-            ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("AltNetIk " + color("#ff0000", "Disconnected"), ConnectToggle, (button) => buttons["ConnectToggle"] = button.transform);
-            ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("SendIK " + color("#00ff00", "Enabled"), ToggleSend, (button) => buttons["ToggleSend"] = button.transform);
-            ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("ReceiveIK " + color("#00ff00", "Enabled"), ToggleReceive, (button) => buttons["ToggleReceive"] = button.transform);
-
             netPacketProcessor.RegisterNestedType<PacketData.Quaternion>();
             netPacketProcessor.RegisterNestedType<PacketData.Vector3>();
             netPacketProcessor.RegisterNestedType(() => new EventData());
             netPacketProcessor.Subscribe(OnPacketReceived, () => new PacketData());
             netPacketProcessor.Subscribe(OnParamPacketReceived, () => new ParamData());
 
+            Patches.DoPatches();
             unsafe
             {
                 // stolen from who knows where
@@ -203,7 +199,6 @@ namespace AltNetIk
             if (autoConnect)
                 MelonCoroutines.Start(Connect());
 
-            
             var playerManager = PlayerManager.field_Private_Static_PlayerManager_0;
             if (playerManager != null)
             {
@@ -233,8 +228,15 @@ namespace AltNetIk
 
         public override void OnUiManagerInit(UiManager uiManager)
         {
+            var menu = uiManager.MainMenu.AddMenuPage("AltNetIK", "Settings for the ALtNetIK module");
+            buttons["ConnectToggle"] = menu.AddButton("AltNetIk " + color("#ff0000", "Disconnected"), string.Empty,
+                ConnectToggle);
+            buttons["ToggleSend"] = menu.AddButton("SendIK " + color("#00ff00", "Enabled"), string.Empty,
+                ToggleSend);
+            buttons["ToggleReceive"] = menu.AddButton("ReceiveIK " + color("#00ff00", "Enabled"), string.Empty,
+                ToggleReceive);
+
             hasQmUiInit = true;
-            Patches.DoPatches();
         }
 
         private static Int64 lastUpdate;
@@ -256,7 +258,6 @@ namespace AltNetIk
         {
             autoConnect = MelonPreferences.GetEntryValue<bool>(ModID, "AutoConnect");
             autoDisconnect = MelonPreferences.GetEntryValue<bool>(ModID, "AutoDisconnect");
-            qmButtonToggles = MelonPreferences.GetEntryValue<bool>(ModID, "QMButtonToggles");
             disableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "DisableLerp");
             var newServerIP = MelonPreferences.GetEntryValue<string>(ModID, "ServerIP");
             var newServerPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
@@ -1140,7 +1141,7 @@ namespace AltNetIk
             try
             {
                 if (buttons.ContainsKey(buttonName) && buttons[buttonName] != null)
-                    buttons[buttonName].GetComponentInChildren<Text>().text = text;
+                    buttons[buttonName].Text = text;
             }
             catch (Exception e)
             {
@@ -1157,17 +1158,6 @@ namespace AltNetIk
                 UpdateButtonText("ConnectToggle", "AltNetIk " + color("#00ff00", "Connected"));
             else
                 UpdateButtonText("ConnectToggle", "AltNetIk " + color("#ff0000", "Disconnected"));
-
-            if (qmButtonToggles)
-            {
-                buttons["ToggleSend"].gameObject.SetActive(true);
-                buttons["ToggleReceive"].gameObject.SetActive(true);
-            }
-            else
-            {
-                buttons["ToggleSend"].gameObject.SetActive(false);
-                buttons["ToggleReceive"].gameObject.SetActive(false);
-            }
 
             if (IsSending)
                 UpdateButtonText("ToggleSend", "SendIK " + color("#00ff00", "Enabled"));
