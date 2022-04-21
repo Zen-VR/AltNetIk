@@ -21,12 +21,15 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Net;
 using System.IO;
+using ReMod.Core;
+using ReMod.Core.Managers;
+using ReMod.Core.VRChat;
 using VRC.Networking;
 using UnhollowerBaseLib;
 
 namespace AltNetIk
 {
-    public class AltNetIk : MelonMod
+    public class AltNetIk : ModComponent
     {
         internal static AltNetIk Instance { get; private set; }
         private const string ModID = BuildInfo.Name;
@@ -142,7 +145,7 @@ namespace AltNetIk
             _floatPropertySetterDelegate(@this, value);
         }
 
-        public override void OnApplicationStart()
+        public AltNetIk()
         {
             Logger = new MelonLogger.Instance(BuildInfo.Name, ConsoleColor.Magenta);
             Instance = this;
@@ -160,8 +163,6 @@ namespace AltNetIk
             disableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "DisableLerp");
             serverIP = MelonPreferences.GetEntryValue<string>(ModID, "ServerIP");
             serverPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
-
-            MelonCoroutines.Start(UiInit());
             Camera.onPreRender = Delegate.Combine(Camera.onPreRender, (Camera.CameraCallback)OnVeryLateUpdate).Cast<Camera.CameraCallback>();
 
             boneNames = HumanTrait.BoneName.ToList();
@@ -201,6 +202,26 @@ namespace AltNetIk
 
             if (autoConnect)
                 MelonCoroutines.Start(Connect());
+
+            
+            var playerManager = PlayerManager.field_Private_Static_PlayerManager_0;
+            if (playerManager != null)
+            {
+                foreach(var player in playerManager.GetPlayers())
+                {
+                    if (player == null)
+                        continue;
+
+                    var vrcPlayer = player._vrcplayer;
+                    if (vrcPlayer == null)
+                        continue;
+
+                    if (vrcPlayer == VRCPlayer.field_Internal_Static_VRCPlayer_0)
+                        SetSenderBones(vrcPlayer, vrcPlayer.field_Private_VRCAvatarManager_0, vrcPlayer.GetAvatarObject());
+                    else
+                        SetReceiverBones(vrcPlayer, vrcPlayer.field_Private_VRCAvatarManager_0);
+                }
+            }
         }
 
         private static unsafe T DelegateCreator<T, T2>(string name, Action<IntPtr, T2> method)
@@ -210,13 +231,8 @@ namespace AltNetIk
             return Marshal.GetDelegateForFunctionPointer<T>(*(IntPtr*)(void*)fieldInfo);
         }
 
-        public static IEnumerator UiInit()
+        public override void OnUiManagerInit(UiManager uiManager)
         {
-            while (VRCUiManager.prop_VRCUiManager_0 == null)
-                yield return null;
-            while (GameObject.Find("UserInterface").transform.Find("Canvas_QuickMenu(Clone)") == null)
-                yield return null;
-
             hasQmUiInit = true;
             Patches.DoPatches();
         }
@@ -524,7 +540,7 @@ namespace AltNetIk
             PlayerNamePlates.Clear();
         }
 
-        public void OnPlayerJoined(Player player)
+        public override void OnPlayerJoined(Player player)
         {
             if (player == null)
                 return;
@@ -541,7 +557,7 @@ namespace AltNetIk
             }
         }
 
-        public void OnPlayerLeft(Player player)
+        public override void OnPlayerLeft(Player player)
         {
             if (player == null)
                 return;
@@ -1123,7 +1139,7 @@ namespace AltNetIk
         {
             try
             {
-                if (buttons[buttonName] != null)
+                if (buttons.ContainsKey(buttonName) && buttons[buttonName] != null)
                     buttons[buttonName].GetComponentInChildren<Text>().text = text;
             }
             catch (Exception e)
