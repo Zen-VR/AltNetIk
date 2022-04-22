@@ -123,7 +123,7 @@ namespace AltNetIk
         private static string serverIP;
         private static int serverPort;
         private static Int64 lastUpdate;
-        private static Int64 ReconnectTimer = 0;
+        private static Int64 ReconnectTimer;
         private static Int64 ReconnectLastAttempt;
 
         internal delegate void BoolPropertySetterDelegate(IntPtr @this, bool value);
@@ -153,7 +153,7 @@ namespace AltNetIk
             MelonPreferences.CreateCategory(ModID, ModID);
             MelonPreferences.CreateEntry(ModID, "AutoConnect", false, "Auto connect to server on startup");
             MelonPreferences.CreateEntry(ModID, "AutoDisconnect", false, "Auto disconnect when leaving world");
-            MelonPreferences.CreateEntry(ModID, "QMButtonToggles", false, "QM toggle buttons for Sender/Receiver");
+            MelonPreferences.CreateEntry(ModID, "QMButtonToggles", true, "QM toggle buttons for Sender/Receiver");
             MelonPreferences.CreateEntry(ModID, "DisableLerp", false, "Disable receiver interpolation");
             MelonPreferences.CreateEntry(ModID, "ServerIP", "", "Server IP");
             MelonPreferences.CreateEntry(ModID, "ServerPort", 9050, "Server Port");
@@ -308,6 +308,8 @@ namespace AltNetIk
         {
             serverPeer = peer;
             IsConnected = true;
+            ReconnectTimer = 1000;
+            ReconnectLastAttempt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             Logger.Msg("Connected");
             MelonCoroutines.Start(SendLocationData());
             UpdateAllButtons();
@@ -324,14 +326,12 @@ namespace AltNetIk
                 client = null;
             }
             DisableReceivers();
-            ReconnectTimer = 5000;
-            ReconnectLastAttempt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             UpdateAllButtons();
         }
 
         private void AutoReconnect()
         {
-            if (IsConnected || ReconnectTimer == 0)
+            if (IsConnected || ReconnectLastAttempt == 0)
                 return;
 
             var date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -456,7 +456,7 @@ namespace AltNetIk
 
         private void ConnectToggle()
         {
-            ReconnectTimer = 0;
+            ReconnectLastAttempt = 0;
             if (IsConnected)
                 Disconnect();
             else
@@ -466,7 +466,7 @@ namespace AltNetIk
         private void Disconnect()
         {
             IsConnected = false;
-            ReconnectTimer = 0;
+            ReconnectLastAttempt = 0;
             if (client != null)
             {
                 client.DisconnectAll();
