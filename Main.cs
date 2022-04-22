@@ -324,8 +324,8 @@ namespace AltNetIk
                 client = null;
             }
             DisableReceivers();
-            ReconnectTimer = 1000;
-            ReconnectLastAttempt = 0;
+            ReconnectTimer = 5000;
+            ReconnectLastAttempt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             UpdateAllButtons();
         }
 
@@ -456,6 +456,7 @@ namespace AltNetIk
 
         private void ConnectToggle()
         {
+            ReconnectTimer = 0;
             if (IsConnected)
                 Disconnect();
             else
