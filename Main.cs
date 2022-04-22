@@ -91,7 +91,7 @@ namespace AltNetIk
             public int updatesPerSecond;
             public Int64 lastTimeReceived;
         }
-        
+
         public struct DataBank
         {
             public Int64 timestamp;
@@ -122,6 +122,9 @@ namespace AltNetIk
         private static bool disableLerp;
         private static string serverIP;
         private static int serverPort;
+        private static Int64 lastUpdate;
+        private static Int64 ReconnectTimer = 0;
+        private static Int64 ReconnectLastAttempt;
 
         internal delegate void BoolPropertySetterDelegate(IntPtr @this, bool value);
         internal static BoolPropertySetterDelegate _boolPropertySetterDelegate;
@@ -221,7 +224,6 @@ namespace AltNetIk
             Patches.DoPatches();
         }
 
-        private static Int64 lastUpdate;
         public override void OnUpdate()
         {
             if (client != null)
@@ -231,6 +233,7 @@ namespace AltNetIk
             if (date - lastUpdate >= 500)
             {
                 lastUpdate = date;
+                AutoReconnect();
                 TimeoutCheck();
                 UpdateNamePlates();
             }
@@ -313,7 +316,6 @@ namespace AltNetIk
         private void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
             Logger.Msg("Server Disconnected: " + disconnectInfo.Reason);
-            // TODO: auto reconnect?
             IsConnected = false;
             if (client != null)
             {
@@ -322,7 +324,26 @@ namespace AltNetIk
                 client = null;
             }
             DisableReceivers();
+            ReconnectTimer = 1000;
+            ReconnectLastAttempt = 0;
             UpdateAllButtons();
+        }
+
+        private void AutoReconnect()
+        {
+            if (IsConnected || ReconnectTimer == 0)
+                return;
+
+            var date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            if (date - ReconnectLastAttempt >= ReconnectTimer)
+            {
+                ReconnectTimer *= 2;
+                if (ReconnectTimer > 3600000)
+                    ReconnectTimer = 3600000; // 1 hour max
+                ReconnectLastAttempt = date;
+                Logger.Msg("Attempting to reconnect");
+                MelonCoroutines.Start(Connect());
+            }
         }
 
         public static void OnPacketReceived(PacketData packet)
@@ -444,6 +465,7 @@ namespace AltNetIk
         private void Disconnect()
         {
             IsConnected = false;
+            ReconnectTimer = 0;
             if (client != null)
             {
                 client.DisconnectAll();
