@@ -158,7 +158,6 @@ namespace AltNetIk
             MelonPreferences.CreateEntry(ModID, "ServerPort", 9050, "Server Port");
             autoConnect = MelonPreferences.GetEntryValue<bool>(ModID, "AutoConnect");
             autoDisconnect = MelonPreferences.GetEntryValue<bool>(ModID, "AutoDisconnect");
-            qmButtonToggles = MelonPreferences.GetEntryValue<bool>(ModID, "QMButtonToggles");
             disableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "DisableLerp");
             serverIP = MelonPreferences.GetEntryValue<string>(ModID, "ServerIP");
             serverPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
