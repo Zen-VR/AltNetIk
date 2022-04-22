@@ -144,6 +144,11 @@ namespace AltNetIk
 
             if (packet.eventName == "LocationUpdate")
             {
+                players[peer.Id].photonId = packet.photonId;
+                var oldLobbyId = players[peer.Id].lobbyId;
+                if (oldLobbyId == packet.lobbyHash)
+                    return;
+
                 if (!String.IsNullOrEmpty(packet.lobbyHash))
                 {
                     if (!instances.ContainsKey(packet.lobbyHash))
@@ -153,7 +158,6 @@ namespace AltNetIk
                     UpdateSenderStates(packet.lobbyHash);
                 }
 
-                var oldLobbyId = players[peer.Id].lobbyId;
                 if (!String.IsNullOrEmpty(oldLobbyId) && instances.ContainsKey(oldLobbyId) && instances[oldLobbyId].ContainsKey(peer.Id))
                 {
                     instances[oldLobbyId].Remove(peer.Id);
@@ -163,7 +167,6 @@ namespace AltNetIk
                         UpdateSenderStates(oldLobbyId);
                 }
 
-                players[peer.Id].photonId = packet.photonId;
                 players[peer.Id].lobbyId = packet.lobbyHash;
                 Console.WriteLine($"[{GetDateTime()}] Location: {packet.lobbyHash} {packet.photonId} {peer.EndPoint}");
             }
