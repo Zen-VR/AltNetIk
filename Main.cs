@@ -37,7 +37,7 @@ namespace AltNetIk
         public static MelonLogger.Instance Logger;
         public static bool hasQmUiInit = false;
         public static bool IsConnected = false;
-        public static bool IsSending = true;
+        public static bool IsSending = false;
         public static bool IsReceiving = true;
         public static bool IsFrozen = false;        
 
@@ -95,7 +95,7 @@ namespace AltNetIk
             public int updatesPerSecond;
             public Int64 lastTimeReceived;
         }
-        
+
         public struct DataBank
         {
             public Int64 timestamp;
@@ -125,6 +125,9 @@ namespace AltNetIk
         private static bool disableLerp;
         private static string serverIP;
         private static int serverPort;
+        private static Int64 lastUpdate;
+        private static Int64 ReconnectTimer = 0;
+        private static Int64 ReconnectLastAttempt;
 
         internal delegate void BoolPropertySetterDelegate(IntPtr @this, bool value);
         internal static BoolPropertySetterDelegate _boolPropertySetterDelegate;
@@ -167,7 +170,7 @@ namespace AltNetIk
 
             netPacketProcessor.RegisterNestedType<PacketData.Quaternion>();
             netPacketProcessor.RegisterNestedType<PacketData.Vector3>();
-            netPacketProcessor.RegisterNestedType(() => new EventData());
+            netPacketProcessor.Subscribe(OnEventPacketReceived, () => new EventData());
             netPacketProcessor.Subscribe(OnPacketReceived, () => new PacketData());
             netPacketProcessor.Subscribe(OnParamPacketReceived, () => new ParamData());
 
@@ -238,7 +241,6 @@ namespace AltNetIk
             hasQmUiInit = true;
         }
 
-        private static Int64 lastUpdate;
         public override void OnUpdate()
         {
             if (client != null)
@@ -248,6 +250,7 @@ namespace AltNetIk
             if (date - lastUpdate >= 500)
             {
                 lastUpdate = date;
+                AutoReconnect();
                 TimeoutCheck();
                 UpdateNamePlates();
             }
@@ -329,7 +332,6 @@ namespace AltNetIk
         private void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
             Logger.Msg("Server Disconnected: " + disconnectInfo.Reason);
-            // TODO: auto reconnect?
             IsConnected = false;
             if (client != null)
             {
@@ -338,7 +340,26 @@ namespace AltNetIk
                 client = null;
             }
             DisableReceivers();
+            ReconnectTimer = 1000;
+            ReconnectLastAttempt = 0;
             UpdateAllButtons();
+        }
+
+        private void AutoReconnect()
+        {
+            if (IsConnected || ReconnectTimer == 0)
+                return;
+
+            var date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            if (date - ReconnectLastAttempt >= ReconnectTimer)
+            {
+                ReconnectTimer *= 2;
+                if (ReconnectTimer > 3600000)
+                    ReconnectTimer = 3600000; // 1 hour max
+                ReconnectLastAttempt = date;
+                Logger.Msg("Attempting to reconnect");
+                MelonCoroutines.Start(Connect());
+            }
         }
 
         public static void OnPacketReceived(PacketData packet)
@@ -460,6 +481,7 @@ namespace AltNetIk
         private void Disconnect()
         {
             IsConnected = false;
+            ReconnectTimer = 0;
             if (client != null)
             {
                 client.DisconnectAll();
@@ -524,6 +546,7 @@ namespace AltNetIk
             if (autoDisconnect)
                 Disconnect();
 
+            IsSending = false;
             string instanceId = $"{world.id}:{instance.id}";
             HashAlgorithm algorithm = new MD5CryptoServiceProvider();
             byte[] hash = algorithm.ComputeHash(Encoding.UTF8.GetBytes(instanceId));
@@ -1203,6 +1226,20 @@ namespace AltNetIk
                         break;
                 }
             }
+        }
+
+        public static void OnEventPacketReceived(EventData packet)
+        {
+            switch (packet.eventName)
+            {
+                case "DisableSender":
+                    IsSending = false;
+                    break;
+                case "EnableSender":
+                    IsSending = true;
+                    break;
+            }
+            UpdateAllButtons();
         }
 
         public static Quaternion LerpUnclamped(PacketData.Quaternion q1, PacketData.Quaternion q2, float t)
