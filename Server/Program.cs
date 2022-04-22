@@ -12,6 +12,8 @@ public class Server
     private static Dictionary<int, LobbyUser> players = new Dictionary<int, LobbyUser>();
     public static readonly NetPacketProcessor netPacketProcessor = new NetPacketProcessor();
 
+    private static bool _running;
+
     static void Main(string[] args)
     {
         EventBasedNetListener listener = new EventBasedNetListener();
@@ -58,12 +60,27 @@ public class Server
         };
 
         Console.WriteLine($"[{GetDateTime()}] Server started");
-        while (!Console.KeyAvailable)
+        _running = true;
+        
+        new Thread(() =>
         {
-            Thread.Sleep(5);
-            Server.PollEvents();
+            while (_running)
+            {
+                Thread.Sleep(5);
+                Server.PollEvents();
+            }
+            
+            Server.Stop();
+        }).Start();
+
+        while (_running)
+        {
+            var input = Console.ReadLine();
+            if (input == "stop")
+            {
+                _running = false;
+            }
         }
-        Server.Stop();
     }
 
     public static void OnPacketReceived(PacketData packet, NetPeer peer)
