@@ -1221,6 +1221,34 @@ namespace AltNetIk
                         _floatPropertySetterDelegate(parameter.Pointer, newValue);
                         break;
                 }
+
+                // Fix avatar limb grabber
+                if (packet.paramName[i] == "GestureLeft")
+                {
+                    if ((int)newValue == 1)
+                    {
+                        if (playerData.playerHandGestureController.field_Private_Gesture_0 != HandGestureController.Gesture.Fist)
+                            playerData.playerHandGestureController.field_Private_Gesture_0 = HandGestureController.Gesture.Fist;
+                    }
+                    else
+                    {
+                        if (playerData.playerHandGestureController.field_Private_Gesture_0 == HandGestureController.Gesture.Fist)
+                            playerData.playerHandGestureController.field_Private_Gesture_0 = HandGestureController.Gesture.None;
+                    }
+                }
+                else if (packet.paramName[i] == "GestureRight")
+                {
+                    if ((int)newValue == 1)
+                    {
+                        if (playerData.playerHandGestureController.field_Private_Gesture_2 != HandGestureController.Gesture.Fist)
+                            playerData.playerHandGestureController.field_Private_Gesture_2 = HandGestureController.Gesture.Fist;
+                    }
+                    else
+                    {
+                        if (playerData.playerHandGestureController.field_Private_Gesture_2 == HandGestureController.Gesture.Fist)
+                            playerData.playerHandGestureController.field_Private_Gesture_2 = HandGestureController.Gesture.None;
+                    }
+                }
             }
         }
 
