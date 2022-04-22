@@ -33,7 +33,7 @@ namespace AltNetIk
         public static MelonLogger.Instance Logger;
         public static bool hasQmUiInit = false;
         public static bool IsConnected = false;
-        public static bool IsSending = true;
+        public static bool IsSending = false;
         public static bool IsReceiving = true;
         public static bool IsFrozen = false;        
 
@@ -172,7 +172,7 @@ namespace AltNetIk
 
             netPacketProcessor.RegisterNestedType<PacketData.Quaternion>();
             netPacketProcessor.RegisterNestedType<PacketData.Vector3>();
-            netPacketProcessor.RegisterNestedType(() => new EventData());
+            netPacketProcessor.Subscribe(OnEventPacketReceived, () => new EventData());
             netPacketProcessor.Subscribe(OnPacketReceived, () => new PacketData());
             netPacketProcessor.Subscribe(OnParamPacketReceived, () => new ParamData());
 
@@ -508,6 +508,7 @@ namespace AltNetIk
             if (autoDisconnect)
                 Disconnect();
 
+            IsSending = false;
             string instanceId = $"{world.id}:{instance.id}";
             HashAlgorithm algorithm = new MD5CryptoServiceProvider();
             byte[] hash = algorithm.ComputeHash(Encoding.UTF8.GetBytes(instanceId));
@@ -1123,7 +1124,7 @@ namespace AltNetIk
         {
             try
             {
-                if (buttons[buttonName] != null)
+                if (buttons.ContainsKey(buttonName) && buttons[buttonName] != null)
                     buttons[buttonName].GetComponentInChildren<Text>().text = text;
             }
             catch (Exception e)
@@ -1198,6 +1199,20 @@ namespace AltNetIk
                         break;
                 }
             }
+        }
+
+        public static void OnEventPacketReceived(EventData packet)
+        {
+            switch (packet.eventName)
+            {
+                case "DisableSender":
+                    IsSending = false;
+                    break;
+                case "EnableSender":
+                    IsSending = true;
+                    break;
+            }
+            UpdateAllButtons();
         }
 
         public static Quaternion LerpUnclamped(PacketData.Quaternion q1, PacketData.Quaternion q2, float t)
