@@ -111,12 +111,12 @@ namespace AltNetIk
             }
 
             bool hasLobbyUser = players.TryGetValue(peer.Id, out LobbyUser lobbyUser);
-            if (!hasLobbyUser)
+            if (!hasLobbyUser || String.IsNullOrEmpty(lobbyUser.lobbyId) || !instances.ContainsKey(lobbyUser.lobbyId))
                 return;
 
-            foreach (LobbyUser player in players.Values)
+            foreach (LobbyUser player in instances[lobbyUser.lobbyId].Values)
             {
-                if (lobbyUser.lobbyId == player.lobbyId && peer != player.peer)
+                if (peer != player.peer)
                     player.peer.Send(writer, DeliveryMethod.Sequenced);
             }
         }
@@ -127,12 +127,12 @@ namespace AltNetIk
             netPacketProcessor.Write(writer, packet);
 
             bool hasLobbyUser = players.TryGetValue(peer.Id, out LobbyUser lobbyUser);
-            if (!hasLobbyUser)
+            if (!hasLobbyUser || String.IsNullOrEmpty(lobbyUser.lobbyId) || !instances.ContainsKey(lobbyUser.lobbyId))
                 return;
 
-            foreach (LobbyUser player in players.Values)
+            foreach (LobbyUser player in instances[lobbyUser.lobbyId].Values)
             {
-                if (lobbyUser.lobbyId == player.lobbyId && peer != player.peer)
+                if (peer != player.peer)
                     player.peer.Send(writer, DeliveryMethod.ReliableOrdered);
             }
         }
