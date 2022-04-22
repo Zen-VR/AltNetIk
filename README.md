@@ -36,3 +36,10 @@ https://user-images.githubusercontent.com/104001796/164469092-99fc29f5-f5bd-4c17
 https://user-images.githubusercontent.com/104001796/164469569-9a0938ca-602c-4798-a9a6-1be743ed59ea.mp4
 
 - Distance based IK update rate slow down.
+
+
+#### This project wouldn't have been possible without the help of these people
+[Zettai](https://github.com/ZettaiVR), 
+[Requi](https://github.com/RequiDev), 
+[DDAkebono](https://github.com/ddakebono), 
+[knah](https://github.com/knah)

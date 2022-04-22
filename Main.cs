@@ -126,7 +126,7 @@ namespace AltNetIk
         private static string serverIP;
         private static int serverPort;
         private static Int64 lastUpdate;
-        private static Int64 ReconnectTimer = 0;
+        private static Int64 ReconnectTimer;
         private static Int64 ReconnectLastAttempt;
 
         internal delegate void BoolPropertySetterDelegate(IntPtr @this, bool value);
@@ -324,6 +324,8 @@ namespace AltNetIk
         {
             serverPeer = peer;
             IsConnected = true;
+            ReconnectTimer = 1000;
+            ReconnectLastAttempt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             Logger.Msg("Connected");
             MelonCoroutines.Start(SendLocationData());
             UpdateAllButtons();
@@ -340,14 +342,12 @@ namespace AltNetIk
                 client = null;
             }
             DisableReceivers();
-            ReconnectTimer = 1000;
-            ReconnectLastAttempt = 0;
             UpdateAllButtons();
         }
 
         private void AutoReconnect()
         {
-            if (IsConnected || ReconnectTimer == 0)
+            if (IsConnected || ReconnectLastAttempt == 0)
                 return;
 
             var date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -472,6 +472,7 @@ namespace AltNetIk
 
         private void ConnectToggle()
         {
+            ReconnectLastAttempt = 0;
             if (IsConnected)
                 Disconnect();
             else
@@ -481,7 +482,7 @@ namespace AltNetIk
         private void Disconnect()
         {
             IsConnected = false;
-            ReconnectTimer = 0;
+            ReconnectLastAttempt = 0;
             if (client != null)
             {
                 client.DisconnectAll();
@@ -1224,6 +1225,34 @@ namespace AltNetIk
                     case AvatarParameter.ParameterType.Float:
                         _floatPropertySetterDelegate(parameter.Pointer, newValue);
                         break;
+                }
+
+                // Fix avatar limb grabber
+                if (packet.paramName[i] == "GestureLeft")
+                {
+                    if ((int)newValue == 1)
+                    {
+                        if (playerData.playerHandGestureController.field_Private_Gesture_0 != HandGestureController.Gesture.Fist)
+                            playerData.playerHandGestureController.field_Private_Gesture_0 = HandGestureController.Gesture.Fist;
+                    }
+                    else
+                    {
+                        if (playerData.playerHandGestureController.field_Private_Gesture_0 == HandGestureController.Gesture.Fist)
+                            playerData.playerHandGestureController.field_Private_Gesture_0 = HandGestureController.Gesture.None;
+                    }
+                }
+                else if (packet.paramName[i] == "GestureRight")
+                {
+                    if ((int)newValue == 1)
+                    {
+                        if (playerData.playerHandGestureController.field_Private_Gesture_2 != HandGestureController.Gesture.Fist)
+                            playerData.playerHandGestureController.field_Private_Gesture_2 = HandGestureController.Gesture.Fist;
+                    }
+                    else
+                    {
+                        if (playerData.playerHandGestureController.field_Private_Gesture_2 == HandGestureController.Gesture.Fist)
+                            playerData.playerHandGestureController.field_Private_Gesture_2 = HandGestureController.Gesture.None;
+                    }
                 }
             }
         }
