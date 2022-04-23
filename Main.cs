@@ -148,8 +148,10 @@ namespace AltNetIk
             _floatPropertySetterDelegate(@this, value);
         }
 
+        private bool _streamSafe;
         public AltNetIk()
         {
+            _streamSafe = Environment.GetCommandLineArgs().Contains("-streamsafe");
             Logger = new MelonLogger.Instance(BuildInfo.Name, ConsoleColor.Magenta);
             Instance = this;
 
@@ -1123,6 +1125,9 @@ namespace AltNetIk
 
         private void UpdateNamePlates()
         {
+            if (_streamSafe)
+                return;
+
             foreach (NamePlateInfo namePlateInfo in PlayerNamePlates.Values.ToList())
             {
                 if (!namePlateInfo.namePlate)
