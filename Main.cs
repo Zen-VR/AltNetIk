@@ -23,6 +23,8 @@ using System.Net;
 using System.IO;
 using VRC.Networking;
 using UnhollowerBaseLib;
+using VRC.Dynamics;
+using VRC.SDK3.Dynamics.PhysBone.Components;
 
 namespace AltNetIk
 {
@@ -441,6 +443,15 @@ namespace AltNetIk
                     if (!(component is Transform))
                         Object.Destroy(component);
                 avatarClone.transform.SetPositionAndRotation(boneData.playerTransform.position, boneData.playerTransform.rotation);
+
+                var pbComponents = avatarClone.GetComponentsInChildren<VRCPhysBone>();
+                foreach (var pb in pbComponents)
+                {
+                    var byteArray = Guid.NewGuid().ToByteArray();
+                    pb.chainId = BitConverter.ToUInt64(byteArray, 0);
+                    PhysBoneManager.Inst.AddPhysBone(pb);
+                }
+
                 frozenPlayers.Add(photonId, avatarClone);
             }
         }
