@@ -151,9 +151,13 @@ namespace AltNetIk
         }
 
         private bool _streamSafe;
+
+        private ConfigValue<bool> ShowNameplateStats;
         public AltNetIk()
         {
             _streamSafe = Environment.GetCommandLineArgs().Contains("-streamsafe");
+            ShowNameplateStats = new ConfigValue<bool>(nameof(ShowNameplateStats), false, "Show nameplate stats");
+
             Logger = new MelonLogger.Instance(BuildInfo.Name, ConsoleColor.Magenta);
             Instance = this;
 
@@ -241,6 +245,8 @@ namespace AltNetIk
                 ToggleSend, ResourceManager.GetSprite("remod.cogwheel"));
             buttons["ToggleReceive"] = menu.AddButton("ReceiveIK " + color("#00ff00", "Enabled"), string.Empty,
                 ToggleReceive, ResourceManager.GetSprite("remod.cogwheel"));
+
+            menu.AddToggle("Show nameplate stats", "Show nameplate stats", ShowNameplateStats);
 
             hasQmUiInit = true;
         }
@@ -1147,8 +1153,7 @@ namespace AltNetIk
                     continue;
                 }
 
-                bool hasPacketData = receiverPacketData.TryGetValue(namePlateInfo.photonId, out ReceiverPacketData packetData);
-                if (!hasPacketData)
+                if (!ShowNameplateStats || !receiverPacketData.TryGetValue(namePlateInfo.photonId, out ReceiverPacketData packetData))
                 {
                     namePlateInfo.namePlate.SetActive(false);
                     continue;
