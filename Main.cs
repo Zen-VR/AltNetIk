@@ -29,6 +29,7 @@ using VRC.Networking;
 using UnhollowerBaseLib;
 using UnhollowerRuntimeLib;
 using VRC.Dynamics;
+using VRC.Dynamics;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 
 namespace AltNetIk
@@ -42,7 +43,7 @@ namespace AltNetIk
         public static bool IsConnected = false;
         public static bool IsSending = false;
         public static bool IsReceiving = true;
-        public static bool IsFrozen = false;        
+        public static bool IsFrozen = false;
 
         public static EventBasedNetListener listener;
         public static NetManager client;
@@ -199,13 +200,6 @@ namespace AltNetIk
                 MelonUtils.NativeHookAttach(param_prop_float_set, new Action<IntPtr, float>(FloatPropertySetter).Method.MethodHandle.GetFunctionPointer());
                 _floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
             }
-
-            //unsafe
-            //         {
-            //	_boolPropertySetterDelegate = DelegateCreator<BoolPropertySetterDelegate, bool>("NativeMethodInfoPtr_Method_Public_Virtual_Final_New_set_Void_Boolean_0", BoolPropertySetter);
-            //             _intPropertySetterDelegate = DelegateCreator<IntPropertySetterDelegate, int>("NativeMethodInfoPtr_Method_Public_Virtual_Final_New_set_Void_Int32_0", IntPropertySetter);
-            //	_floatPropertySetterDelegate = DelegateCreator<FloatPropertySetterDelegate, float>("NativeMethodInfoPtr_Method_Public_Virtual_Final_New_set_Void_Single_0", FloatPropertySetter);
-            //         }
 
             if (autoConnect)
                 MelonCoroutines.Start(Connect());
@@ -397,7 +391,16 @@ namespace AltNetIk
                 if (packetData.frozen != packet.frozen)
                 {
                     packetData.frozen = packet.frozen;
-                    ToggleFreeze(packet.photonId, packet.frozen);
+                    if (packet.frozen)
+                    {
+                        bool hasBoneData = receiverPlayerData.TryGetValue(packet.photonId, out PlayerData boneData);
+                        if (!packet.loading && hasBoneData && !boneData.loading)
+                            ToggleFreeze(packet.photonId, packet.frozen);
+                    }
+                    else
+                    {
+                        ToggleFreeze(packet.photonId, packet.frozen);
+                    }
                 }
                 if (date != packetData.lastTimeReceived)
                 {
@@ -428,6 +431,10 @@ namespace AltNetIk
             }
             else
             {
+                bool hasBoneData = receiverPlayerData.TryGetValue(packet.photonId, out PlayerData boneData);
+                if (hasBoneData && packet.frozen && !packet.loading && !boneData.loading)
+                    ToggleFreeze(packet.photonId, packet.frozen);
+
                 ReceiverPacketData newPacketData = new ReceiverPacketData
                 {
                     photonId = packet.photonId,
@@ -443,8 +450,6 @@ namespace AltNetIk
                     lastTimeReceived = date
                 };
                 receiverPacketData.AddOrUpdate(packet.photonId, newPacketData, (k, v) => newPacketData);
-                if (packet.frozen)
-                    ToggleFreeze(packet.photonId, packet.frozen);
             }
         }
 
@@ -479,7 +484,6 @@ namespace AltNetIk
                     pb.chainId = BitConverter.ToUInt64(byteArray, 0);
                     pb.allowGrabbing = true;
                     PhysBoneManager.Inst.AddPhysBone(pb);
-
                 }
 
                 frozenPlayers.Add(photonId, avatarClone);
@@ -551,6 +555,7 @@ namespace AltNetIk
                     playerData.playerPoseRecorder.enabled = true;
                     playerData.playerHandGestureController.enabled = true;
                     playerData.playerAnimControlNetSerializer.enabled = true;
+                    receiverPlayerData.AddOrUpdate(packetData.photonId, playerData, (k, v) => playerData);
                 }
                 bool hasPlayerNamePlate = PlayerNamePlates.TryGetValue(packetData.photonId, out NamePlateInfo namePlateInfo);
                 if (hasPlayerNamePlate)
@@ -625,12 +630,18 @@ namespace AltNetIk
         public void OnAvatarChange(VRCAvatarManager avatarManager, ApiAvatar __1, GameObject gameObject)
         {
             VRCPlayer player = avatarManager.field_Private_VRCPlayer_0;
-            if (player == null) return;
+            if (player == null)
+                return;
+
+            PipelineManager pipelineManager = gameObject.GetComponent<PipelineManager>();
+            if (pipelineManager == null)
+                return;
+            string avatarId = pipelineManager.blueprintId;
 
             if (player == VRCPlayer.field_Internal_Static_VRCPlayer_0)
-                SetSenderBones(player, avatarManager, gameObject);
+                SetSenderBones(player, avatarManager, avatarId);
             else
-                SetReceiverBones(player, avatarManager);
+                SetReceiverBones(player, avatarManager, avatarId);
         }
 
         public void OnAvatarInit(VRCAvatarManager avatarManager, GameObject __1)
@@ -642,12 +653,16 @@ namespace AltNetIk
                 senderPlayerData.loading = true;
         }
 
-        public void SetReceiverBones(VRCPlayer player, VRCAvatarManager avatarManager)
+        public void SetReceiverBones(VRCPlayer player, VRCAvatarManager avatarManager, string avatarId)
         {
+            int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
             int boneCount = 0;
             bool[] boneList = new bool[55];
-
-            int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
+            bool loading = false;
+            if (avatarId == "avtr_749445a8-d9bf-4d48-b077-d18b776f66f7")
+            {
+                loading = true;
+            }
 
             var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
             var parameters = new Dictionary<string, AvatarParameter>();
@@ -675,6 +690,7 @@ namespace AltNetIk
                     boneCount = boneCount,
                     boneList = boneList,
                     parameters = parameters,
+                    loading = loading,
                     active = false
                 };
                 receiverPlayerData.AddOrUpdate(photonId, emptyBoneData, (k, v) => emptyBoneData);
@@ -726,6 +742,7 @@ namespace AltNetIk
                 boneCount = boneCount,
                 boneList = boneList,
                 parameters = parameters,
+                loading = loading,
                 active = false
             };
 
@@ -746,23 +763,15 @@ namespace AltNetIk
             receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
         }
 
-        public void SetSenderBones(VRCPlayer player, VRCAvatarManager avatarManager, GameObject gameObject)
+        public void SetSenderBones(VRCPlayer player, VRCAvatarManager avatarManager, string avatarId)
         {
-            var date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-
+            int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
             int boneCount = 0;
             bool[] boneList = new bool[55];
-
             bool loading = false;
-            int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
-            PipelineManager pipelineManager = gameObject.GetComponent<PipelineManager>();
-            if (pipelineManager != null)
+            if (avatarId == "avtr_749445a8-d9bf-4d48-b077-d18b776f66f7")
             {
-                string avatarId = pipelineManager.blueprintId;
-                if (avatarId == "avtr_749445a8-d9bf-4d48-b077-d18b776f66f7")
-                {
-                    loading = true;
-                }
+                loading = true;
             }
 
             var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
@@ -870,15 +879,13 @@ namespace AltNetIk
                 if (boneData.playerTransform == null)
                     continue;
 
-                //if (boneData.loading)
-                //    continue;
-
                 if (!boneData.active)
                 {
                     boneData.active = true;
                     boneData.playerPoseRecorder.enabled = false;
                     boneData.playerHandGestureController.enabled = false;
                     boneData.playerAnimControlNetSerializer.enabled = false;
+                    receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
                 }
 
                 Int64 date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -1141,6 +1148,7 @@ namespace AltNetIk
                         playerData.playerPoseRecorder.enabled = true;
                         playerData.playerHandGestureController.enabled = true;
                         playerData.playerAnimControlNetSerializer.enabled = true;
+                        receiverPlayerData.AddOrUpdate(packetData.photonId, playerData, (k, v) => playerData);
                     }
                     bool hasPlayerNamePlate = PlayerNamePlates.TryGetValue(packetData.photonId, out NamePlateInfo namePlateInfo);
                     if (hasPlayerNamePlate)
