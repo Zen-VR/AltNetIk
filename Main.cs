@@ -1018,6 +1018,10 @@ namespace AltNetIk
             int i = 0;
             foreach (var parameter in senderPlayerData.parameters.Values)
             {
+                // don't want to send our IsLocal status to others. that makes no sense.
+                if (parameter.field_Private_String_0 == "IsLocal")
+                    continue;
+
                 float value;
                 var type = parameter.field_Private_ParameterType_0;
                 switch (type)
