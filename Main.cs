@@ -216,10 +216,16 @@ namespace AltNetIk
                     if (vrcPlayer == null)
                         continue;
 
+                    var pipelineManager = vrcPlayer.GetAvatarObject().GetComponent<PipelineManager>();
+                    if (pipelineManager == null)
+                        continue;
+                    
+                    var avatarId = pipelineManager.blueprintId;
+
                     if (vrcPlayer == VRCPlayer.field_Internal_Static_VRCPlayer_0)
-                        SetSenderBones(vrcPlayer, vrcPlayer.field_Private_VRCAvatarManager_0, vrcPlayer.GetAvatarObject());
+                        SetSenderBones(vrcPlayer, vrcPlayer.field_Private_VRCAvatarManager_0, avatarId);
                     else
-                        SetReceiverBones(vrcPlayer, vrcPlayer.field_Private_VRCAvatarManager_0);
+                        SetReceiverBones(vrcPlayer, vrcPlayer.field_Private_VRCAvatarManager_0, avatarId);
                 }
             }
         }
