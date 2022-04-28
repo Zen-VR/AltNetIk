@@ -462,8 +462,13 @@ namespace AltNetIk
                 GameObject avatar = avatarTransfrom.gameObject;
                 GameObject avatarClone = Object.Instantiate(avatar);
                 foreach (Component component in avatarClone.GetComponents<Component>())
-                    if (!(component is Transform))
+                {
+                    if (component.GetIl2CppType() != Il2CppType.Of<Transform>())
+                    {
                         Object.Destroy(component);
+                    }
+                }
+                
                 avatarClone.transform.SetPositionAndRotation(boneData.playerTransform.position, boneData.playerTransform.rotation);
 
                 var pbComponents = avatarClone.GetComponentsInChildren<VRCPhysBone>();
@@ -471,7 +476,9 @@ namespace AltNetIk
                 {
                     var byteArray = Guid.NewGuid().ToByteArray();
                     pb.chainId = BitConverter.ToUInt64(byteArray, 0);
+                    pb.allowGrabbing = true;
                     PhysBoneManager.Inst.AddPhysBone(pb);
+
                 }
 
                 frozenPlayers.Add(photonId, avatarClone);
