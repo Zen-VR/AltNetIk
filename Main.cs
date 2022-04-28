@@ -628,11 +628,7 @@ namespace AltNetIk
             int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
             int boneCount = 0;
             bool[] boneList = new bool[55];
-            bool loading = false;
-            if (avatarId == "avtr_749445a8-d9bf-4d48-b077-d18b776f66f7")
-            {
-                loading = true;
-            }
+            bool loading = avatarId == "avtr_749445a8-d9bf-4d48-b077-d18b776f66f7";
 
             var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
             var parameters = new Dictionary<string, AvatarParameter>();
@@ -641,10 +637,11 @@ namespace AltNetIk
                 foreach (var param in avatarParams.Values)
                 {
                     // don't want to send our IsLocal status to others. that makes no sense.
-                    if (param.field_Private_String_0 == "IsLocal")
+                    var parameterName = param.field_Private_String_0;
+                    if (parameterName == "IsLocal")
                         continue;
                     
-                    parameters.Add(param.field_Private_String_0, param);
+                    parameters.Add(parameterName, param);
                 }
             }
 
@@ -755,10 +752,11 @@ namespace AltNetIk
                 foreach (var param in avatarParams.Values)
                 {
                     // don't want to send our IsLocal status to others. that makes no sense.
-                    if (param.field_Private_String_0 == "IsLocal")
+                    var parameterName = param.field_Private_String_0;
+                    if (parameterName == "IsLocal")
                         continue;
 
-                    parameters.Add(param.field_Private_String_0, param);
+                    parameters.Add(parameterName, param);
                 }
             }
 
