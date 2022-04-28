@@ -27,6 +27,7 @@ using ReMod.Core.UI.QuickMenu;
 using ReMod.Core.VRChat;
 using VRC.Networking;
 using UnhollowerBaseLib;
+using UnhollowerRuntimeLib;
 using VRC.Dynamics;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 
