@@ -475,6 +475,9 @@ namespace AltNetIk
                 GameObject avatarClone = Object.Instantiate(avatar);
                 foreach (Component component in avatarClone.GetComponents<Component>())
                 {
+                    if (component == null)
+                        continue;
+                    
                     if (component.GetIl2CppType() != Il2CppType.Of<Transform>())
                     {
                         Object.Destroy(component);
