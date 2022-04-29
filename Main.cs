@@ -445,6 +445,9 @@ namespace AltNetIk
                 GameObject avatarClone = Object.Instantiate(avatar);
                 foreach (Component component in avatarClone.GetComponents<Component>())
                     if (!(component is Transform))
+                    if (component == null)
+                        continue;
+                    
                         Object.Destroy(component);
                 avatarClone.transform.SetPositionAndRotation(boneData.playerTransform.position, boneData.playerTransform.rotation);
 
