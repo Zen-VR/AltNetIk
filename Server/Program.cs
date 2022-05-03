@@ -5,6 +5,8 @@ namespace AltNetIk
 {
     public class Server
     {
+        public static string version = "1.2.0";
+        public static short versionNum = short.Parse(version.Replace(".", ""));
         public class LobbyUser
         {
             public NetPeer peer;
@@ -22,7 +24,7 @@ namespace AltNetIk
         {
             EventBasedNetListener listener = new EventBasedNetListener();
             NetManager Server = new NetManager(listener);
-            Server.Start(9050);
+            Server.Start(9052);
 
             netPacketProcessor.RegisterNestedType<PacketData.Quaternion>();
             netPacketProcessor.RegisterNestedType<PacketData.Vector3>();
@@ -32,9 +34,8 @@ namespace AltNetIk
 
             listener.ConnectionRequestEvent += request =>
             {
-                request.AcceptIfKey("");
-            //request.Reject();
-        };
+                request.AcceptIfKey("AltNetIk");
+            };
 
             listener.PeerConnectedEvent += peer =>
             {
@@ -55,7 +56,21 @@ namespace AltNetIk
                         if (instances[lobbyId].Count == 0)
                             instances.Remove(lobbyId);
                         else
+                        {
+                            NetDataWriter writer = new NetDataWriter();
+                            EventData eventData = new EventData
+                            {
+                                lobbyHash = lobbyId,
+                                photonId = players[peer.Id].photonId,
+                                eventName = "PlayerDisconnect"
+                            };                            
+                            netPacketProcessor.Write(writer, eventData);
+                            foreach (LobbyUser player in instances[lobbyId].Values)
+                            {
+                                player.peer.Send(writer, DeliveryMethod.ReliableOrdered);
+                            }
                             UpdateSenderStates(lobbyId);
+                        }
                     }
                     players.Remove(peer.Id);
                 }
@@ -114,6 +129,12 @@ namespace AltNetIk
             if (!hasLobbyUser || String.IsNullOrEmpty(lobbyUser.lobbyId) || !instances.ContainsKey(lobbyUser.lobbyId))
                 return;
 
+            if (lobbyUser.photonId != packet.photonId)
+            {
+                Console.WriteLine($"[{GetDateTime()}] IK packet photonId mismatch {lobbyUser.photonId}/{packet.photonId} {peer.EndPoint}");
+                return;
+            }
+
             foreach (LobbyUser player in instances[lobbyUser.lobbyId].Values)
             {
                 if (peer != player.peer)
@@ -130,6 +151,12 @@ namespace AltNetIk
             if (!hasLobbyUser || String.IsNullOrEmpty(lobbyUser.lobbyId) || !instances.ContainsKey(lobbyUser.lobbyId))
                 return;
 
+            if (lobbyUser.photonId != packet.photonId)
+            {
+                Console.WriteLine($"[{GetDateTime()}] Param packet photonId mismatch {lobbyUser.photonId}/{packet.photonId} {peer.EndPoint}");
+                return;
+            }
+
             foreach (LobbyUser player in instances[lobbyUser.lobbyId].Values)
             {
                 if (peer != player.peer)
@@ -142,33 +169,57 @@ namespace AltNetIk
             if (!players.ContainsKey(peer.Id))
                 return;
 
-            if (packet.eventName == "LocationUpdate")
+            if (packet.version != versionNum)
             {
-                players[peer.Id].photonId = packet.photonId;
-                var oldLobbyId = players[peer.Id].lobbyId;
-                if (oldLobbyId == packet.lobbyHash)
-                    return;
+                string message = $"Version mismatch: {packet.version}/{versionNum} please update mod/server to latest version";
+                Console.WriteLine($"[{GetDateTime()}] {message} {peer.EndPoint}");
+                NetDataWriter writer = new NetDataWriter();
+                writer.Put(message);
+                peer.Disconnect(writer);
+            }
 
-                if (!String.IsNullOrEmpty(packet.lobbyHash))
-                {
-                    if (!instances.ContainsKey(packet.lobbyHash))
-                        instances.Add(packet.lobbyHash, new Dictionary<int, LobbyUser>());
-                    instances[packet.lobbyHash].Add(peer.Id, players[peer.Id]);
+            switch (packet.eventName)
+            {
+                case "LocationUpdate":
+                    players[peer.Id].photonId = packet.photonId;
+                    var oldLobbyId = players[peer.Id].lobbyId;
+                    if (oldLobbyId == packet.lobbyHash)
+                        return;
 
-                    UpdateSenderStates(packet.lobbyHash);
-                }
+                    if (!String.IsNullOrEmpty(packet.lobbyHash))
+                    {
+                        if (!instances.ContainsKey(packet.lobbyHash))
+                            instances.Add(packet.lobbyHash, new Dictionary<int, LobbyUser>());
+                        instances[packet.lobbyHash].Add(peer.Id, players[peer.Id]);
 
-                if (!String.IsNullOrEmpty(oldLobbyId) && instances.ContainsKey(oldLobbyId) && instances[oldLobbyId].ContainsKey(peer.Id))
-                {
-                    instances[oldLobbyId].Remove(peer.Id);
-                    if (instances[oldLobbyId].Count == 0)
-                        instances.Remove(oldLobbyId);
-                    else
-                        UpdateSenderStates(oldLobbyId);
-                }
+                        UpdateSenderStates(packet.lobbyHash);
+                    }
 
-                players[peer.Id].lobbyId = packet.lobbyHash;
-                Console.WriteLine($"[{GetDateTime()}] Location: {packet.lobbyHash} {packet.photonId} {peer.EndPoint}");
+                    if (!String.IsNullOrEmpty(oldLobbyId) && instances.ContainsKey(oldLobbyId) && instances[oldLobbyId].ContainsKey(peer.Id))
+                    {
+                        instances[oldLobbyId].Remove(peer.Id);
+                        if (instances[oldLobbyId].Count == 0)
+                            instances.Remove(oldLobbyId);
+                        else
+                            UpdateSenderStates(oldLobbyId);
+                    }
+
+                    players[peer.Id].lobbyId = packet.lobbyHash;
+                    Console.WriteLine($"[{GetDateTime()}] Location: {packet.lobbyHash} {packet.photonId} {peer.EndPoint}");
+                    break;
+                case "PlayerDisconnect":
+                    bool hasLobbyUser = players.TryGetValue(peer.Id, out LobbyUser lobbyUser);
+                    if (!hasLobbyUser || String.IsNullOrEmpty(lobbyUser.lobbyId) || !instances.ContainsKey(lobbyUser.lobbyId))
+                        return;
+
+                    NetDataWriter writer = new NetDataWriter();
+                    netPacketProcessor.Write(writer, packet);
+                    foreach (LobbyUser player in instances[lobbyUser.lobbyId].Values)
+                    {
+                        if (peer != player.peer)
+                            player.peer.Send(writer, DeliveryMethod.ReliableOrdered);
+                    }
+                    break;
             }
         }
 

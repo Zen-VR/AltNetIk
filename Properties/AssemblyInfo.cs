@@ -13,7 +13,6 @@ using MelonLoader;
 
 namespace AltNetIk
 {
-
     public static class BuildInfo
     {
         public const string Name = "AltNetIk";

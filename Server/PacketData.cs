@@ -58,10 +58,12 @@ namespace AltNetIk
         }
 
         public int photonId { get; set; }
-        public bool loading { get; set; }
+        public int ping { get; set; }
         public bool frozen { get; set; }
+        public short avatarKind { get; set; }
         public byte boneCount { get; set; }
         public Vector3 hipPosition { get; set; }
+        public Quaternion hipRotation { get; set; }
         public Vector3 playerPosition { get; set; }
         public Quaternion playerRotation { get; set; }
         public bool[] boneList { get; set; }
@@ -70,11 +72,13 @@ namespace AltNetIk
         public void Serialize(NetDataWriter writer)
         {
             writer.Put(photonId);
-            writer.Put(loading);
+            writer.Put(ping);
             writer.Put(frozen);
+            writer.Put(avatarKind);
             writer.Put(boneCount);
 
             writer.Put(hipPosition);
+            writer.Put(hipRotation);
             writer.Put(playerPosition);
             writer.Put(playerRotation);
 
@@ -89,11 +93,13 @@ namespace AltNetIk
         public void Deserialize(NetDataReader reader)
         {
             photonId = reader.GetInt();
-            loading = reader.GetBool();
+            ping = reader.GetInt();
             frozen = reader.GetBool();
+            avatarKind = reader.GetShort();
             boneCount = reader.GetByte();
 
             hipPosition = reader.Get<Vector3>();
+            hipRotation = reader.Get<Quaternion>();
             playerPosition = reader.Get<Vector3>();
             playerRotation = reader.Get<Quaternion>();
 
@@ -112,27 +118,38 @@ namespace AltNetIk
         public int photonId { get; set; }
         public string[] paramName { get; set; }
         public short[] paramType { get; set; }
-        public float[] paramValue { get; set; }
+        public bool[] boolParams { get; set; }
+        public short[] intParams { get; set; }
+        public float[] floatParams { get; set; }
+
         public void Serialize(NetDataWriter writer)
         {
             writer.Put(photonId);
 
             writer.PutArray(paramName);
             writer.PutArray(paramType);
-            writer.PutArray(paramValue);
+
+            writer.PutArray(boolParams);
+            writer.PutArray(intParams);
+            writer.PutArray(floatParams);
         }
+
         public void Deserialize(NetDataReader reader)
         {
             photonId = reader.GetInt();
 
             paramName = reader.GetStringArray();
             paramType = reader.GetShortArray();
-            paramValue = reader.GetFloatArray();
+
+            boolParams = reader.GetBoolArray();
+            intParams = reader.GetShortArray();
+            floatParams = reader.GetFloatArray();
         }
     }
 
     public class EventData : INetSerializable
     {
+        public short version { get; set; }
         public string lobbyHash { get; set; }
         public int photonId { get; set; }
         public string eventName { get; set; }
@@ -140,6 +157,7 @@ namespace AltNetIk
 
         public void Serialize(NetDataWriter writer)
         {
+            writer.Put(version);
             writer.Put(lobbyHash);
             writer.Put(photonId);
             writer.Put(eventName);
@@ -147,6 +165,7 @@ namespace AltNetIk
         }
         public void Deserialize(NetDataReader reader)
         {
+            version = reader.GetShort();
             lobbyHash = reader.GetString();
             photonId = reader.GetInt();
             eventName = reader.GetString();

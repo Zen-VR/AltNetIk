@@ -105,11 +105,11 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="VRC.Dynamics">
-      <HintPath>S:\Games\steamapps\common\VRChat\MelonLoader\Managed\VRC.Dynamics.dll</HintPath>
+      <HintPath>..\..\..\..\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\VRC.Dynamics.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRC.SDK3.Dynamics.PhysBone">
-      <HintPath>S:\Games\steamapps\common\VRChat\MelonLoader\Managed\VRC.SDK3.Dynamics.PhysBone.dll</HintPath>
+      <HintPath>..\..\..\..\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\VRC.SDK3.Dynamics.PhysBone.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRC.UI.Core">
@@ -128,12 +128,26 @@
       <HintPath>..\..\..\..\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\VRCCore-Standalone.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="VRCSDK3A">
+      <HintPath>..\..\..\..\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\VRCSDK3A.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="VRCSDKBase">
+      <HintPath>..\..\..\..\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\VRCSDKBase.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NamePlate.cs" />
+    <Compile Include="Networking.cs" />
     <Compile Include="PacketData.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Patches.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Receiver.cs" />
+    <Compile Include="Sender.cs" />
+    <Compile Include="SetupBones.cs" />
+    <Compile Include="Structs.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ILMerge.props" />
