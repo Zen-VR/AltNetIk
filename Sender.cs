@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using System.Collections;
 using UnityEngine;
 using LiteNetLib;
@@ -16,7 +16,7 @@ namespace AltNetIk
                 !IsSending ||
                 currentPhotonId == 0 ||
                 senderPlayerData.playerTransform == null ||
-                senderPlayerData.isSdk2)
+                (senderPlayerData.isSdk2 && senderPlayerData.avatarKind == 8))
             {
                 return;
             }

@@ -38,13 +38,14 @@ namespace AltNetIk
 
         private static ConcurrentDictionary<int, PlayerData> receiverPlayerData = new ConcurrentDictionary<int, PlayerData>();
         private static Dictionary<int, GameObject> frozenPlayers = new Dictionary<int, GameObject>();
-        private static Dictionary<int, NamePlateInfo> PlayerNamePlates = new Dictionary<int, NamePlateInfo>();
+        private static Dictionary<int, NamePlateInfo> playerNamePlates = new Dictionary<int, NamePlateInfo>();
+        private static NamePlateInfo senderNamePlate = new NamePlateInfo();
 
         private static string currentInstanceIdHash;
         private static int currentPhotonId = 0;
 
         private static ConcurrentDictionary<int, ReceiverPacketData> receiverPacketData = new ConcurrentDictionary<int, ReceiverPacketData>();
-        private static Dictionary<int, DataBank> receiverLastPacket = new Dictionary<int, DataBank>();
+        private static ConcurrentDictionary<int, DataBank> receiverLastPacket = new ConcurrentDictionary<int, DataBank>();
         private static PlayerData senderPlayerData = new PlayerData();
 
         private static PacketData.Quaternion[] netRotations;
@@ -235,7 +236,7 @@ namespace AltNetIk
             receiverLastPacket.Clear();
             frozenPlayers.Clear();
             receiverPlayerData.Clear();
-            PlayerNamePlates.Clear();
+            playerNamePlates.Clear();
         }
 
         public void OnPlayerJoined(Player player)
@@ -262,10 +263,10 @@ namespace AltNetIk
             int photonId = player.field_Private_Player_0.field_Private_Int32_0;
             if (photonId != currentPhotonId)
             {
-                PlayerNamePlates.Remove(photonId);
+                playerNamePlates.Remove(photonId);
                 receiverPlayerData.TryRemove(photonId, out _);
                 receiverPacketData.TryRemove(photonId, out _);
-                receiverLastPacket.Remove(photonId);
+                receiverLastPacket.TryRemove(photonId, out _);
                 RemoveFreeze(photonId);
             }
         }

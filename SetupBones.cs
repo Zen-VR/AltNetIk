@@ -72,8 +72,7 @@ namespace AltNetIk
                     parameters = parameters,
                     avatarKind = avatarKind,
                     active = false,
-                    isSdk2 = isSdk2,
-                    deltaTime = 0
+                    isSdk2 = isSdk2
                 };
                 receiverPlayerData.AddOrUpdate(photonId, emptyBoneData, (k, v) => emptyBoneData);
                 return;
@@ -128,8 +127,7 @@ namespace AltNetIk
                 parameters = parameters,
                 avatarKind = avatarKind,
                 active = false,
-                isSdk2 = isSdk2,
-                deltaTime = 0
+                isSdk2 = isSdk2
             };
 
             int index = -1;
@@ -201,8 +199,6 @@ namespace AltNetIk
             senderPacketData = new PacketData();
             Animator animator = avatarManager.field_Private_Animator_0;
             bool isSdk2 = avatarManager.prop_VRCAvatarDescriptor_0 == null;
-            if (isSdk2 && avatarKind != 1)
-                Logger.Msg("SDK2 avatars aren't supported");
 
             if (animator == null || animator.avatar == null || !animator.avatar.isHuman)
             {

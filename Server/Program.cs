@@ -5,7 +5,7 @@ namespace AltNetIk
 {
     public class Server
     {
-        public static string version = "1.2.0";
+        public static string version = "1.3.0";
         public static short versionNum = short.Parse(version.Replace(".", ""));
         public class LobbyUser
         {
@@ -183,17 +183,6 @@ namespace AltNetIk
                 case "LocationUpdate":
                     players[peer.Id].photonId = packet.photonId;
                     var oldLobbyId = players[peer.Id].lobbyId;
-                    if (oldLobbyId == packet.lobbyHash)
-                        return;
-
-                    if (!String.IsNullOrEmpty(packet.lobbyHash))
-                    {
-                        if (!instances.ContainsKey(packet.lobbyHash))
-                            instances.Add(packet.lobbyHash, new Dictionary<int, LobbyUser>());
-                        instances[packet.lobbyHash].Add(peer.Id, players[peer.Id]);
-
-                        UpdateSenderStates(packet.lobbyHash);
-                    }
 
                     if (!String.IsNullOrEmpty(oldLobbyId) && instances.ContainsKey(oldLobbyId) && instances[oldLobbyId].ContainsKey(peer.Id))
                     {
@@ -202,6 +191,15 @@ namespace AltNetIk
                             instances.Remove(oldLobbyId);
                         else
                             UpdateSenderStates(oldLobbyId);
+                    }
+
+                    if (!String.IsNullOrEmpty(packet.lobbyHash))
+                    {
+                        if (!instances.ContainsKey(packet.lobbyHash))
+                            instances.Add(packet.lobbyHash, new Dictionary<int, LobbyUser>());
+                        instances[packet.lobbyHash].Add(peer.Id, players[peer.Id]);
+
+                        UpdateSenderStates(packet.lobbyHash);
                     }
 
                     players[peer.Id].lobbyId = packet.lobbyHash;

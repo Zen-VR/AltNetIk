@@ -41,7 +41,6 @@ namespace AltNetIk
             public Dictionary<string, AvatarParameter> parameters;
             public bool active;
             public bool isSdk2;
-            public int deltaTime;
         }
 
         public struct ReceiverPacketData
@@ -63,6 +62,7 @@ namespace AltNetIk
         public struct DataBank
         {
             public Int64 timestamp;
+            public int deltaTime;
             public PacketData.Quaternion[] boneRotations;
             public PacketData.Vector3 hipPosition;
             public PacketData.Quaternion hipRotation;

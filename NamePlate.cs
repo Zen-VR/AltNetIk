@@ -34,7 +34,7 @@ namespace AltNetIk
                 namePlate = stats.gameObject,
                 namePlateText = namePlate
             };
-            PlayerNamePlates.Add(photonId, namePlateInfo);
+            playerNamePlates.Add(photonId, namePlateInfo);
             stats.Find("Trust Icon").gameObject.SetActive(false);
             stats.Find("Performance Icon").gameObject.SetActive(false);
             stats.Find("Performance Text").gameObject.SetActive(false);
@@ -46,11 +46,11 @@ namespace AltNetIk
             if (_streamSafe)
                 return;
 
-            foreach (NamePlateInfo namePlateInfo in PlayerNamePlates.Values.ToList())
+            foreach (NamePlateInfo namePlateInfo in playerNamePlates.Values.ToList())
             {
                 if (!namePlateInfo.namePlate)
                 {
-                    PlayerNamePlates.Remove(namePlateInfo.photonId);
+                    playerNamePlates.Remove(namePlateInfo.photonId);
                     continue;
                 }
 
@@ -73,7 +73,7 @@ namespace AltNetIk
                         loadingText = $" {color("#00ff00", "Loading")}";
                     if (packetData.frozen)
                         frozenText = $" {color("#ff0000", "Frozen")}";
-                    namePlateInfo.namePlateText.text = $"PPS: {packetData.packetsPerSecond * 2} PNG: {packetData.ping}{loadingText}{frozenText}";
+                    namePlateInfo.namePlateText.text = $"FPS: {packetData.packetsPerSecond * 2} PING: {packetData.ping}{loadingText}{frozenText}";
                 }
 
                 packetData.packetsPerSecond = 0;
