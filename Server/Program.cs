@@ -6,7 +6,7 @@ namespace AltNetIk
     public class Server
     {
         public static string version = "1.3.0";
-        public static short versionNum = short.Parse(version.Replace(".", ""));
+        public static short versionNum = short.Parse(version.Substring(0, version.LastIndexOf(".")).Replace(".", ""));
         public class LobbyUser
         {
             public NetPeer peer;

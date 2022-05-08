@@ -42,7 +42,7 @@ namespace AltNetIk
             senderPacketData.playerPosition = senderPlayerData.playerTransform.position;
             senderPacketData.playerRotation = senderPlayerData.playerTransform.rotation;
             senderPacketData.photonId = currentPhotonId;
-            senderPacketData.ping = serverPeer.Ping;
+            senderPacketData.ping = serverPeer.RoundTripTime;
             senderPacketData.frozen = IsFrozen;
             senderPacketData.avatarKind = senderPlayerData.avatarKind;
 
@@ -110,7 +110,7 @@ namespace AltNetIk
             NetDataWriter writer = new NetDataWriter();
             EventData eventData = new EventData
             {
-                version = short.Parse(BuildInfo.Version.Replace(".", "")),
+                version = short.Parse(BuildInfo.Version.Substring(0, BuildInfo.Version.LastIndexOf(".")).Replace(".", "")),
                 lobbyHash = currentInstanceIdHash,
                 photonId = currentPhotonId,
                 eventName = "LocationUpdate"
