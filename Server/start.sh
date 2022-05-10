@@ -1,4 +1,4 @@
 #!/bin/bash
 
-git pull --autostash origin remod-core-impl
+git pull --autostash origin main
 dotnet run -c Release
