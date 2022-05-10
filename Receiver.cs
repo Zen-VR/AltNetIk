@@ -1,11 +1,11 @@
 using MelonLoader;
 using System;
-using UnityEngine;
-using Object = UnityEngine.Object;
-using VRC.Playables;
 using UnhollowerRuntimeLib;
+using UnityEngine;
 using VRC.Dynamics;
+using VRC.Playables;
 using VRC.SDK3.Dynamics.PhysBone.Components;
+using Object = UnityEngine.Object;
 
 namespace AltNetIk
 {
@@ -162,7 +162,7 @@ namespace AltNetIk
                 }
 
                 // clamp delta
-                if (disableLerp || !(deltaFloat >= 0f && deltaFloat <= 1.0f))
+                if (!enableLerp || !(deltaFloat >= 0f && deltaFloat <= 1.0f))
                     deltaFloat = 1.0f;
 
                 int index = -1;
@@ -279,10 +279,12 @@ namespace AltNetIk
                         _boolPropertySetterDelegate(parameter.Pointer, packet.boolParams[boolIndex]);
                         boolIndex++;
                         break;
+
                     case AvatarParameter.ParameterType.Int:
                         _intPropertySetterDelegate(parameter.Pointer, packet.intParams[intIndex]);
                         intIndex++;
                         break;
+
                     case AvatarParameter.ParameterType.Float:
                         _floatPropertySetterDelegate(parameter.Pointer, packet.floatParams[floatIndex]);
                         floatIndex++;
@@ -326,17 +328,18 @@ namespace AltNetIk
                 case "DisableSender":
                     IsSending = false;
                     break;
+
                 case "EnableSender":
                     IsSending = true;
                     break;
+
                 case "PlayerDisconnect":
-                    Logger.Msg($"disconnected player: {packet.photonId}");
                     DisableReceiver(packet.photonId);
                     break;
             }
-            UpdateAllButtons();
+            Buttons.UpdateAllButtons();
         }
-        
+
         private void TimeoutCheck()
         {
             var date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -416,6 +419,7 @@ namespace AltNetIk
                 frozenPlayers.Remove(photonId);
             }
         }
+
         private void DisableReceivers()
         {
             foreach (ReceiverPacketData packetData in receiverPacketData.Values)

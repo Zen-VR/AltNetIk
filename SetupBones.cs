@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using VRC;
-using VRC.Playables;
 using VRC.Networking;
+using VRC.Playables;
 
 namespace AltNetIk
 {
@@ -35,9 +35,11 @@ namespace AltNetIk
                         case AvatarParameter.ParameterType.Bool:
                             boolParams++;
                             break;
+
                         case AvatarParameter.ParameterType.Int:
                             intParams++;
                             break;
+
                         case AvatarParameter.ParameterType.Float:
                             floatParams++;
                             break;
@@ -175,9 +177,11 @@ namespace AltNetIk
                         case AvatarParameter.ParameterType.Bool:
                             boolParams++;
                             break;
+
                         case AvatarParameter.ParameterType.Int:
                             intParams++;
                             break;
+
                         case AvatarParameter.ParameterType.Float:
                             floatParams++;
                             break;

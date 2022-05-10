@@ -1,8 +1,8 @@
+using LiteNetLib;
+using LiteNetLib.Utils;
 using MelonLoader;
 using System.Collections;
 using UnityEngine;
-using LiteNetLib;
-using LiteNetLib.Utils;
 using VRC.Playables;
 
 namespace AltNetIk
@@ -75,17 +75,19 @@ namespace AltNetIk
             short floatIndex = 0;
             foreach (var parameter in senderPlayerData.parameters.Values)
             {
-                var type = parameter.field_Private_ParameterType_0;               
+                var type = parameter.field_Private_ParameterType_0;
                 switch (type)
                 {
                     case AvatarParameter.ParameterType.Bool:
                         senderParamData.boolParams[boolIndex] = parameter.field_Private_Boolean_0;
                         boolIndex++;
                         break;
+
                     case AvatarParameter.ParameterType.Int:
                         senderParamData.intParams[intIndex] = (short)parameter.field_Private_Int32_1;
                         intIndex++;
                         break;
+
                     case AvatarParameter.ParameterType.Float:
                         senderParamData.floatParams[floatIndex] = parameter.field_Private_Single_0;
                         floatIndex++;
@@ -127,7 +129,7 @@ namespace AltNetIk
             NetDataWriter writer = new NetDataWriter();
             EventData eventData = new EventData
             {
-                version = short.Parse(BuildInfo.Version.Replace(".", "")),
+                version = short.Parse(BuildInfo.Version.Substring(0, BuildInfo.Version.LastIndexOf(".")).Replace(".", "")),
                 lobbyHash = currentInstanceIdHash,
                 photonId = currentPhotonId,
                 eventName = "PlayerDisconnect"

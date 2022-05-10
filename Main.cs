@@ -1,31 +1,28 @@
+using LiteNetLib;
+using LiteNetLib.Utils;
 using MelonLoader;
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UIExpansionKit.API;
-using Delegate = Il2CppSystem.Delegate;
-using VRC.Core;
-using System.Linq;
-using UnityEngine.UI;
-using VRC;
-using System.Security.Cryptography;
-using System.Text;
 using System.Collections.Concurrent;
-using LiteNetLib;
-using LiteNetLib.Utils;
-using VRC.Playables;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
+using UnityEngine;
+using VRC;
+using VRC.Core;
+using VRC.Playables;
+using Delegate = Il2CppSystem.Delegate;
 
 namespace AltNetIk
 {
     public partial class AltNetIk : MelonMod
     {
         internal static AltNetIk Instance { get; private set; }
-        private const string ModID = BuildInfo.Name;
+        public const string ModID = BuildInfo.Name;
         public static MelonLogger.Instance Logger;
-        public static bool hasQmUiInit = false;
         public static bool IsConnected = false;
         public static bool IsSending = false;
         public static bool IsReceiving = true;
@@ -39,7 +36,6 @@ namespace AltNetIk
         private static ConcurrentDictionary<int, PlayerData> receiverPlayerData = new ConcurrentDictionary<int, PlayerData>();
         private static Dictionary<int, GameObject> frozenPlayers = new Dictionary<int, GameObject>();
         private static Dictionary<int, NamePlateInfo> playerNamePlates = new Dictionary<int, NamePlateInfo>();
-        private static NamePlateInfo senderNamePlate = new NamePlateInfo();
 
         private static string currentInstanceIdHash;
         private static int currentPhotonId = 0;
@@ -54,12 +50,13 @@ namespace AltNetIk
 
         private static List<string> boneNames = new List<string>();
 
-        public static Dictionary<string, Transform> buttons = new Dictionary<string, Transform>();
-        public static string color(string c, string s) { return $"<color={c}>{s}</color>"; } // stolen from MintLily
+        public static string color(string c, string s)
+        { return $"<color={c}>{s}</color>"; } // stolen from MintLily
 
         private static bool autoConnect;
-        private static bool qmButtonToggles;
-        private static bool disableLerp;
+        private static bool _streamSafe;
+        public static bool enableLerp;
+        public static bool namePlates;
         private static string serverIP;
         private static int serverPort;
         private static Int64 lastUpdate;
@@ -67,51 +64,55 @@ namespace AltNetIk
         private static Int64 ReconnectLastAttempt;
 
         internal delegate void BoolPropertySetterDelegate(IntPtr @this, bool value);
+
         internal static BoolPropertySetterDelegate _boolPropertySetterDelegate;
+
         internal static void BoolPropertySetter(IntPtr @this, bool value)
         {
             _boolPropertySetterDelegate(@this, value);
         }
+
         internal delegate void IntPropertySetterDelegate(IntPtr @this, int value);
+
         internal static IntPropertySetterDelegate _intPropertySetterDelegate;
+
         internal static void IntPropertySetter(IntPtr @this, int value)
         {
             _intPropertySetterDelegate(@this, value);
         }
+
         internal delegate void FloatPropertySetterDelegate(IntPtr @this, float value);
+
         internal static FloatPropertySetterDelegate _floatPropertySetterDelegate;
+
         internal static void FloatPropertySetter(IntPtr @this, float value)
         {
             _floatPropertySetterDelegate(@this, value);
         }
 
-        private bool _streamSafe;
         public override void OnApplicationStart()
         {
-            _streamSafe = Environment.GetCommandLineArgs().Contains("-streamsafe");
             Logger = new MelonLogger.Instance(BuildInfo.Name, ConsoleColor.Magenta);
             Instance = this;
 
             MelonPreferences.CreateCategory(ModID, ModID);
-            MelonPreferences.CreateEntry(ModID, "AutoConnect", true, "Auto connect to server on startup");
-            MelonPreferences.CreateEntry(ModID, "QMButtonToggles", true, "QM toggle buttons for Sender/Receiver");
-            MelonPreferences.CreateEntry(ModID, "DisableLerp", false, "Disable receiver interpolation");
-            MelonPreferences.CreateEntry(ModID, "ServerIP", "ik.qwertyuiop.nz", "Server IP");
+            MelonPreferences.CreateEntry(ModID, "ServerAutoConnect", true, "Auto connect on startup");
+            MelonPreferences.CreateEntry(ModID, "NamePlates", true, "Nameplate stats");
+            MelonPreferences.CreateEntry(ModID, "EnableLerp", true, "Receiver interpolation");
+            MelonPreferences.CreateEntry(ModID, "ServerIP", "", "Server IP");
             MelonPreferences.CreateEntry(ModID, "ServerPort", 9052, "Server Port");
-            autoConnect = MelonPreferences.GetEntryValue<bool>(ModID, "AutoConnect");
-            qmButtonToggles = MelonPreferences.GetEntryValue<bool>(ModID, "QMButtonToggles");
-            disableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "DisableLerp");
+            autoConnect = MelonPreferences.GetEntryValue<bool>(ModID, "ServerAutoConnect");
+            namePlates = MelonPreferences.GetEntryValue<bool>(ModID, "NamePlates");
+            enableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "EnableLerp");
             serverIP = MelonPreferences.GetEntryValue<string>(ModID, "ServerIP");
             serverPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
 
-            MelonCoroutines.Start(UiInit());
-            Camera.onPreRender = Delegate.Combine(Camera.onPreRender, (Camera.CameraCallback)OnVeryLateUpdate).Cast<Camera.CameraCallback>();
+            if (!MelonHandler.Mods.Any(m => m.Info.Name == "TabExtension"))
+                Logger.Warning("TabExtension is missing, to fix quick menu tabs install it from here: https://github.com/DragonPlayerX/TabExtension/releases/latest");
 
+            _streamSafe = Environment.GetCommandLineArgs().Contains("-streamsafe");
+            ReMod_Core_Downloader.LoadReModCore();
             boneNames = HumanTrait.BoneName.ToList();
-
-            ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("AltNetIk " + color("#ff0000", "Disconnected"), ConnectToggle, (button) => buttons["ConnectToggle"] = button.transform);
-            ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("SendIK " + color("#00ff00", "Enabled"), ToggleSend, (button) => buttons["ToggleSend"] = button.transform);
-            ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("ReceiveIK " + color("#00ff00", "Enabled"), ToggleReceive, (button) => buttons["ToggleReceive"] = button.transform);
 
             netPacketProcessor.RegisterNestedType<PacketData.Quaternion>();
             netPacketProcessor.RegisterNestedType<PacketData.Vector3>();
@@ -119,6 +120,8 @@ namespace AltNetIk
             netPacketProcessor.Subscribe(OnPacketReceived, () => new PacketData());
             netPacketProcessor.Subscribe(OnParamPacketReceived, () => new ParamData());
 
+            MelonCoroutines.Start(UiInit());
+            Camera.onPreRender = Delegate.Combine(Camera.onPreRender, (Camera.CameraCallback)OnVeryLateUpdate).Cast<Camera.CameraCallback>();
             unsafe
             {
                 // stolen from who knows where
@@ -134,20 +137,20 @@ namespace AltNetIk
                 MelonUtils.NativeHookAttach(param_prop_float_set, new Action<IntPtr, float>(FloatPropertySetter).Method.MethodHandle.GetFunctionPointer());
                 _floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
             }
+        }
+
+        public IEnumerator UiInit()
+        {
+            while (VRCUiManager.prop_VRCUiManager_0 == null)
+                yield return new WaitForSeconds(0.1f);
+            while (GameObject.Find("UserInterface").transform.Find("Canvas_QuickMenu(Clone)") == null)
+                yield return new WaitForSeconds(0.1f);
+
+            Patches.DoPatches();
+            Buttons.SetupButtons();
 
             if (autoConnect)
                 MelonCoroutines.Start(Connect());
-        }
-
-        public static IEnumerator UiInit()
-        {
-            while (VRCUiManager.prop_VRCUiManager_0 == null)
-                yield return null;
-            while (GameObject.Find("UserInterface").transform.Find("Canvas_QuickMenu(Clone)") == null)
-                yield return null;
-
-            hasQmUiInit = true;
-            Patches.DoPatches();
         }
 
         public override void OnUpdate()
@@ -162,14 +165,17 @@ namespace AltNetIk
                 AutoReconnect();
                 TimeoutCheck();
                 UpdateNamePlates();
+                Buttons.UpdateButtonText("Ping", "Ping\n" + serverPeer?.RoundTripTime);
             }
         }
 
         public override void OnPreferencesSaved()
         {
-            autoConnect = MelonPreferences.GetEntryValue<bool>(ModID, "AutoConnect");
-            qmButtonToggles = MelonPreferences.GetEntryValue<bool>(ModID, "QMButtonToggles");
-            disableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "DisableLerp");
+            autoConnect = MelonPreferences.GetEntryValue<bool>(ModID, "ServerAutoConnect");
+            namePlates = MelonPreferences.GetEntryValue<bool>(ModID, "NamePlates");
+            enableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "EnableLerp");
+            Buttons.UpdateToggleState("NameplateStats", namePlates);
+            Buttons.UpdateToggleState("EnableLerp", enableLerp);
             var newServerIP = MelonPreferences.GetEntryValue<string>(ModID, "ServerIP");
             var newServerPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
             if (newServerIP != serverIP || newServerPort != serverPort)
@@ -193,28 +199,28 @@ namespace AltNetIk
             }
         }
 
-        private void ToggleSend()
+        public void ToggleSend()
         {
             IsSending = !IsSending;
             if (!IsSending)
                 SendDisconnect();
-            UpdateAllButtons();
+            Buttons.UpdateAllButtons();
         }
 
-        private void ToggleReceive()
+        public void ToggleReceive()
         {
             IsReceiving = !IsReceiving;
             if (!IsReceiving)
             {
                 DisableReceivers();
             }
-            UpdateAllButtons();
+            Buttons.UpdateAllButtons();
         }
 
         private void ToggleLerp()
         {
-            disableLerp = !disableLerp;
-            UpdateAllButtons();
+            enableLerp = !enableLerp;
+            Buttons.UpdateAllButtons();
         }
 
         public void OnInstanceChanged(ApiWorld world, ApiWorldInstance instance)
@@ -304,54 +310,6 @@ namespace AltNetIk
                 boneData.avatarKind = (short)avatarManager.field_Private_AvatarKind_0;
                 receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
             }
-        }
-
-        public static void UpdateButtonText(string buttonName, string text)
-        {
-            try
-            {
-                if (buttons.ContainsKey(buttonName) && buttons[buttonName] != null)
-                    buttons[buttonName].GetComponentInChildren<Text>().text = text;
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e.ToString());
-            }
-        }
-
-        public static void UpdateAllButtons()
-        {
-            if (!hasQmUiInit)
-                return;
-
-            if (IsConnected)
-                UpdateButtonText("ConnectToggle", "AltNetIk " + color("#00ff00", "Connected"));
-            else
-                UpdateButtonText("ConnectToggle", "AltNetIk " + color("#ff0000", "Disconnected"));
-
-            if (buttons.ContainsKey("ToggleSend") && buttons.ContainsKey("ToggleReceive"))
-            {
-                if (qmButtonToggles)
-                {
-                    buttons["ToggleSend"].gameObject.SetActive(true);
-                    buttons["ToggleReceive"].gameObject.SetActive(true);
-                }
-                else
-                {
-                    buttons["ToggleSend"].gameObject.SetActive(false);
-                    buttons["ToggleReceive"].gameObject.SetActive(false);
-                }
-            }
-
-            if (IsSending)
-                UpdateButtonText("ToggleSend", "SendIK " + color("#00ff00", "Enabled"));
-            else
-                UpdateButtonText("ToggleSend", "SendIK " + color("#ff0000", "Disabled"));
-
-            if (IsReceiving)
-                UpdateButtonText("ToggleReceive", "ReceiveIK " + color("#00ff00", "Enabled"));
-            else
-                UpdateButtonText("ToggleReceive", "ReceiveIK " + color("#ff0000", "Disabled"));
         }
 
         public static Quaternion LerpUnclamped(PacketData.Quaternion q1, PacketData.Quaternion q2, float t)

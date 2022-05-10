@@ -1,7 +1,7 @@
+using LiteNetLib;
 using MelonLoader;
 using System;
 using System.Collections;
-using LiteNetLib;
 
 namespace AltNetIk
 {
@@ -35,8 +35,7 @@ namespace AltNetIk
                 }
                 DisableReceivers();
             }
-            UpdateAllButtons();
-            yield break;
+            Buttons.UpdateAllButtons();
         }
 
         private void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)
@@ -53,7 +52,7 @@ namespace AltNetIk
             ReconnectLastAttempt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             Logger.Msg(ConsoleColor.Green, "Connected");
             MelonCoroutines.Start(SendLocationData());
-            UpdateAllButtons();
+            Buttons.UpdateAllButtons();
         }
 
         private void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
@@ -78,7 +77,7 @@ namespace AltNetIk
                 client = null;
             }
             DisableReceivers();
-            UpdateAllButtons();
+            Buttons.UpdateAllButtons();
         }
 
         private void AutoReconnect()
@@ -98,7 +97,7 @@ namespace AltNetIk
             }
         }
 
-        private void ConnectToggle()
+        public void ConnectToggle()
         {
             ReconnectLastAttempt = 0;
             if (IsConnected)
@@ -120,7 +119,7 @@ namespace AltNetIk
                 Logger.Msg("Disconnected");
             }
             DisableReceivers();
-            UpdateAllButtons();
+            Buttons.UpdateAllButtons();
         }
     }
 }

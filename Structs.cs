@@ -1,11 +1,11 @@
 ﻿using MelonLoader;
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using VRC;
-using TMPro;
-using VRC.Playables;
 using VRC.Networking;
+using VRC.Playables;
 
 namespace AltNetIk
 {
