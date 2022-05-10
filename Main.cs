@@ -108,7 +108,7 @@ namespace AltNetIk
             serverPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
 
             if (!MelonHandler.Mods.Any(m => m.Info.Name == "TabExtension"))
-                Logger.Warning("TabExtension is missing, to fix quick menu tabs install it from here: https://github.com/DragonPlayerX/TabExtension/releases/latest");
+                Logger.Warning("TabExtension is missing, to fix broken quick menu tabs install it from here: https://github.com/DragonPlayerX/TabExtension/releases/latest");
 
             _streamSafe = Environment.GetCommandLineArgs().Contains("-streamsafe");
             ReMod_Core_Downloader.LoadReModCore();
@@ -163,9 +163,12 @@ namespace AltNetIk
             {
                 lastUpdate = date;
                 AutoReconnect();
-                TimeoutCheck();
-                UpdateNamePlates();
-                Buttons.UpdateButtonText("Ping", "Ping\n" + serverPeer?.RoundTripTime);
+                if (IsConnected)
+                {
+                    TimeoutCheck();
+                    UpdateNamePlates();
+                    Buttons.UpdateButtonText("Ping", "Ping\n" + serverPeer?.RoundTripTime);
+                }
             }
         }
 
