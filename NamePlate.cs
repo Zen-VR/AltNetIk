@@ -1,10 +1,10 @@
 using MelonLoader;
 using System;
-using UnityEngine;
-using Object = UnityEngine.Object;
 using System.Linq;
-using VRC;
 using TMPro;
+using UnityEngine;
+using VRC;
+using Object = UnityEngine.Object;
 
 namespace AltNetIk
 {
@@ -40,7 +40,7 @@ namespace AltNetIk
             stats.Find("Performance Text").gameObject.SetActive(false);
             stats.Find("Friend Anchor Stats").gameObject.SetActive(false);
         }
-        
+
         private void UpdateNamePlates()
         {
             if (_streamSafe)
@@ -55,7 +55,7 @@ namespace AltNetIk
                 }
 
                 bool hasPacketData = receiverPacketData.TryGetValue(namePlateInfo.photonId, out ReceiverPacketData packetData);
-                if (!hasPacketData)
+                if (!hasPacketData || !namePlates)
                 {
                     namePlateInfo.namePlate.SetActive(false);
                     continue;
@@ -73,7 +73,7 @@ namespace AltNetIk
                         loadingText = $" {color("#00ff00", "Loading")}";
                     if (packetData.frozen)
                         frozenText = $" {color("#ff0000", "Frozen")}";
-                    namePlateInfo.namePlateText.text = $"FPS: {packetData.packetsPerSecond * 2} Ping: {packetData.ping}{loadingText}{frozenText}";
+                    namePlateInfo.namePlateText.text = $"UPS: {packetData.packetsPerSecond * 2} Ping: {packetData.ping}{loadingText}{frozenText}";
                 }
 
                 packetData.packetsPerSecond = 0;

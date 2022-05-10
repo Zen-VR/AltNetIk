@@ -2,22 +2,22 @@
 
 VRChats IK update rate is about 6-20Hz this is quite slow with a lot of smoothing it's fine for most things in VR but not dancing, this mod aims to fix that. Players without the mod will see your normal VRChat networked IK. Avatar parameters like face gestures or OSC stuff like eye/face tracking will update at the same rate as your IK.
 
-TLDR: Remote players look local, faster IK and avatar parameter update rates, lower ping/IK delay, a few of VRChats networked IK bugs fixed.
+TLDR: Remote players look same as local, faster IK and avatar parameter update rates, lower ping/IK delay, a few of VRChats networked IK bugs fixed.
 
 #### Nameplate info:
 - Packets Per Second (PPS), the amount of IK updates you receive from a player per second (value will be close to their current FPS).
-- Updates Per Second (UPS), the amount of IK updates that get applied to that player per second, this is limited by your FPS can't apply IK faster than your current FPS.
+- Ping (server round-trip time), the amount of delay in milliseconds it takes to send an update to the server and back.
 
 #### Known bugs:
-- When remote players calibrate/reset their avatar it can lay sideways for a few seconds.
-- Remote player fallback avatars aren't supported.
-- Interpolation can cause single frames with broken player rotation, option in settings to disable interpolation.
+- When remote players calibrate/reset their avatar will become broken for a few seconds.
+- SDK2 avatars aren't supported.
+- Interpolation can cause single frames with broken player rotation, option to disable interpolation in settings.
 - If you find any bugs that aren't listed here make an issue [here](https://github.com/Zen-VR/AltNetIk/issues) or send me a DM.
 
 
 #### Fixed VRChat bugs:
 
-- Bones fliping caused by VRChats bad interpolation.
+- Bones flipping.
 
 https://user-images.githubusercontent.com/104001796/164467306-f6da9735-d324-47b0-9a75-10af54b4983e.mp4
 
@@ -35,11 +35,12 @@ https://user-images.githubusercontent.com/104001796/164469092-99fc29f5-f5bd-4c17
 
 https://user-images.githubusercontent.com/104001796/164469569-9a0938ca-602c-4798-a9a6-1be743ed59ea.mp4
 
-- Distance based IK update rate slow down.
+- Distance and player count based IK update rate slow down.
 
 
 #### This project wouldn't have been possible without the help of these people
-[Zettai](https://github.com/ZettaiVR), 
-[Requi](https://github.com/RequiDev), 
-[DDAkebono](https://github.com/ddakebono), 
+[Zettai](https://github.com/ZettaiVR),
+[Requi](https://github.com/RequiDev),
+[DDAkebono](https://github.com/ddakebono),
 [knah](https://github.com/knah)
+[Yato](https://github.com/Kiokuu)

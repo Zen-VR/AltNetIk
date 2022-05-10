@@ -1,10 +1,10 @@
-﻿using VRC;
-using VRC.Core;
-using HarmonyLib;
-using System.Reflection;
-using System.Linq;
+﻿using HarmonyLib;
 using System;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
+using VRC;
+using VRC.Core;
 
 namespace AltNetIk
 {
@@ -62,7 +62,7 @@ namespace AltNetIk
 
         private static void OnQuickMenuOpen()
         {
-            AltNetIk.UpdateAllButtons();
+            Buttons.UpdateAllButtons();
         }
-    }        
+    }
 }

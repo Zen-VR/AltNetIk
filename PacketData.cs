@@ -1,4 +1,4 @@
-﻿using LiteNetLib.Utils;
+using LiteNetLib.Utils;
 
 namespace AltNetIk
 {
@@ -9,20 +9,25 @@ namespace AltNetIk
             public float x;
             public float y;
             public float z;
+
             public Vector3(UnityEngine.Vector3 vector3)
             {
                 x = vector3.x;
                 y = vector3.y;
                 z = vector3.z;
             }
+
             public static implicit operator Vector3(UnityEngine.Vector3 a) => new Vector3(a);
+
             public static implicit operator UnityEngine.Vector3(Vector3 a) => new UnityEngine.Vector3(a.x, a.y, a.z);
+
             public void Serialize(NetDataWriter writer)
             {
                 writer.Put(x);
                 writer.Put(y);
                 writer.Put(z);
             }
+
             public void Deserialize(NetDataReader reader)
             {
                 x = reader.GetFloat();
@@ -30,13 +35,14 @@ namespace AltNetIk
                 z = reader.GetFloat();
             }
         }
-        
+
         public struct Quaternion : INetSerializable
         {
             public float x;
             public float y;
             public float z;
             public float w;
+
             public Quaternion(UnityEngine.Quaternion quaternion)
             {
                 x = quaternion.x;
@@ -44,6 +50,7 @@ namespace AltNetIk
                 z = quaternion.z;
                 w = quaternion.w;
             }
+
             public Quaternion(float X, float Y, float Z, float W)
             {
                 this.x = X;
@@ -53,6 +60,7 @@ namespace AltNetIk
             }
 
             public static implicit operator Quaternion(UnityEngine.Quaternion a) => new Quaternion(a);
+
             public static implicit operator UnityEngine.Quaternion(Quaternion a) => new UnityEngine.Quaternion(a.x, a.y, a.z, a.w);
 
             public void Serialize(NetDataWriter writer)
@@ -62,6 +70,7 @@ namespace AltNetIk
                 writer.Put(z);
                 writer.Put(w);
             }
+
             public void Deserialize(NetDataReader reader)
             {
                 x = reader.GetFloat();
@@ -82,7 +91,6 @@ namespace AltNetIk
         public Quaternion playerRotation { get; set; }
         public bool[] boneList { get; set; }
         public Quaternion[] boneRotations { get; set; }
-        
 
         public void Serialize(NetDataWriter writer)
         {
@@ -104,7 +112,7 @@ namespace AltNetIk
                 writer.Put(boneRotation);
             }
         }
-        
+
         public void Deserialize(NetDataReader reader)
         {
             photonId = reader.GetInt();
@@ -178,6 +186,7 @@ namespace AltNetIk
             writer.Put(eventName);
             writer.Put(data);
         }
+
         public void Deserialize(NetDataReader reader)
         {
             version = reader.GetShort();

@@ -1,5 +1,5 @@
-﻿using System.Reflection;
-using MelonLoader;
+﻿using MelonLoader;
+using System.Reflection;
 
 [assembly: AssemblyTitle(AltNetIk.BuildInfo.Name)]
 [assembly: AssemblyCompany(AltNetIk.BuildInfo.Company)]
@@ -10,6 +10,7 @@ using MelonLoader;
 [assembly: AssemblyFileVersion(AltNetIk.BuildInfo.Version)]
 [assembly: MelonInfo(typeof(AltNetIk.AltNetIk), AltNetIk.BuildInfo.Name, AltNetIk.BuildInfo.Version, AltNetIk.BuildInfo.Author, AltNetIk.BuildInfo.DownloadLink)]
 [assembly: MelonGame("VRChat", "VRChat")]
+[assembly: MelonOptionalDependencies("ReMod.Core")]
 
 namespace AltNetIk
 {
