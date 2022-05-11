@@ -57,6 +57,14 @@ namespace AltNetIk
             }, AltNetIk.namePlates);
         }
 
+        public static void UpdatePing()
+        {
+            int ping = 0;
+            if (AltNetIk.serverPeer != null)
+                ping = AltNetIk.serverPeer.RoundTripTime;
+            UpdateButtonText("Ping", "Ping\n" + ping);
+        }
+
         public static void UpdateButtonText(string buttonName, string text)
         {
             try
@@ -100,7 +108,7 @@ namespace AltNetIk
             else
                 UpdateButtonText("ToggleReceive", "Receive\n" + AltNetIk.color("#ff0000", "Disabled"));
 
-            UpdateButtonText("Ping", "Ping\n" + AltNetIk.serverPeer?.RoundTripTime);
+            UpdatePing();
         }
     }
 }

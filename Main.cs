@@ -167,7 +167,7 @@ namespace AltNetIk
                 {
                     TimeoutCheck();
                     UpdateNamePlates();
-                    Buttons.UpdateButtonText("Ping", "Ping\n" + serverPeer?.RoundTripTime);
+                    Buttons.UpdatePing();
                 }
             }
         }

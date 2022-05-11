@@ -40,15 +40,15 @@ https://user-images.githubusercontent.com/104001796/164469569-9a0938ca-602c-4798
 
 #### Hosting your own server:
 
+* Port forward UDP port `9052`, if you don't know how to port forward you can find the appropriate guide for your router [here](https://portforward.com/router.htm).
 * Download and extract latest server release [zip](https://github.com/Zen-VR/AltNetIk/releases/latest).
     * On Windows run `AltNetIkServer.exe`.
     * On Linux first install [.Net Core](https://docs.microsoft.com/dotnet/core/install/linux) from your package manager then run either `./start.sh` or `./AltNetIkServer`.
-* Port forward UDP port `9052`, if you don't know how to port forward you can find the appropriate guide for your router [here](https://portforward.com/router.htm).
 
 
 #### This project wouldn't have been possible without the help of these people
 [Zettai](https://github.com/ZettaiVR),
 [Requi](https://github.com/RequiDev),
 [DDAkebono](https://github.com/ddakebono),
-[knah](https://github.com/knah)
+[knah](https://github.com/knah),
 [Yato](https://github.com/Kiokuu)
