@@ -364,6 +364,7 @@ namespace AltNetIk
                     if (hasPlayerNamePlate)
                     {
                         namePlateInfo.namePlate.SetActive(false);
+                        namePlateInfo.namePlateStatusLine.localPosition = new Vector3(0.0066f, -58f, 0f);
                     }
                     RemoveFreeze(packetData.photonId);
                 }
@@ -447,6 +448,7 @@ namespace AltNetIk
             if (hasPlayerNamePlate)
             {
                 namePlateInfo.namePlate.SetActive(false);
+                namePlateInfo.namePlateStatusLine.localPosition = new Vector3(0.0066f, -58f, 0f);
             }
             RemoveFreeze(photonId);
         }

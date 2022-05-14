@@ -17,6 +17,7 @@ namespace AltNetIk
             public Player player;
             public GameObject namePlate;
             public TextMeshProUGUI namePlateText;
+            public Transform namePlateStatusLine;
         }
 
         public struct PlayerData

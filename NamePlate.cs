@@ -19,7 +19,8 @@ namespace AltNetIk
                 Logger.Error("Couldn't find nameplate");
                 return;
             }
-            stats.localPosition = new Vector3(0f, -60f, 0f);
+            Transform statusLine = player.gameObject.transform.Find("Player Nameplate/Canvas/Nameplate/Contents/Status Line");
+            stats.localPosition = new Vector3(0f, -58f, 0f);
             stats.transform.localScale = new Vector3(1f, 1f, 2f);
             stats.parent = player.gameObject.transform.Find("Player Nameplate/Canvas/Nameplate/Contents");
             stats.gameObject.SetActive(true);
@@ -32,7 +33,8 @@ namespace AltNetIk
                 photonId = photonId,
                 player = player,
                 namePlate = stats.gameObject,
-                namePlateText = namePlate
+                namePlateText = namePlate,
+                namePlateStatusLine = statusLine
             };
             playerNamePlates.Add(photonId, namePlateInfo);
             stats.Find("Trust Icon").gameObject.SetActive(false);
@@ -58,11 +60,13 @@ namespace AltNetIk
                 if (!hasPacketData || !namePlates)
                 {
                     namePlateInfo.namePlate.SetActive(false);
+                    namePlateInfo.namePlateStatusLine.localPosition = new Vector3(0.0066f, -58f, 0f);
                     continue;
                 }
 
                 namePlateInfo.namePlate.SetActive(true);
                 namePlateInfo.namePlateText.enabled = true;
+                namePlateInfo.namePlateStatusLine.localPosition = new Vector3(0.0066f, -86f, 0f);
                 if (packetData.packetsPerSecond == 0)
                     namePlateInfo.namePlateText.text = $"{color("#ff0000", "Timeout")}";
                 else
@@ -73,7 +77,7 @@ namespace AltNetIk
                         loadingText = $" {color("#00ff00", "Loading")}";
                     if (packetData.frozen)
                         frozenText = $" {color("#ff0000", "Frozen")}";
-                    namePlateInfo.namePlateText.text = $"UPS: {packetData.packetsPerSecond * 2} Ping: {packetData.ping}{loadingText}{frozenText}";
+                    namePlateInfo.namePlateText.text = $"PPS: {packetData.packetsPerSecond * 2} Ping: {packetData.ping}{loadingText}{frozenText}";
                 }
 
                 packetData.packetsPerSecond = 0;
