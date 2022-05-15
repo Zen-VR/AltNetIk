@@ -16,7 +16,7 @@ namespace AltNetIk
                 !IsSending ||
                 currentPhotonId == 0 ||
                 senderPlayerData.playerTransform == null ||
-                (senderPlayerData.isSdk2 && senderPlayerData.avatarKind == 8))
+                (senderPlayerData.isSdk2 && senderPlayerData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom))
             {
                 return;
             }

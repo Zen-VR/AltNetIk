@@ -77,11 +77,8 @@ namespace AltNetIk
             }
             else
             {
-                if (hasBoneData)
-                {
-                    if (packet.frozen && packet.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom)
-                        ToggleFreeze(packet.photonId, packet.frozen);
-                }
+                if (hasBoneData && packet.frozen && packet.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom)
+                    ToggleFreeze(packet.photonId, packet.frozen);
 
                 ReceiverPacketData newPacketData = new ReceiverPacketData
                 {
@@ -113,7 +110,7 @@ namespace AltNetIk
                 if (!hasBoneData)
                     continue;
 
-                if (boneData.playerTransform == null || (boneData.isSdk2 && boneData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom))
+                if (boneData.playerTransform == null)
                     continue;
 
                 int lastDeltaTime = 0;
@@ -335,6 +332,13 @@ namespace AltNetIk
 
                 case "PlayerDisconnect":
                     DisableReceiver(packet.photonId);
+                    break;
+
+                case "Message":
+                    VRCUiManager.prop_VRCUiManager_0.field_Private_Single_0 = 0f;
+                    VRCUiManager.prop_VRCUiManager_0.field_Private_Single_1 = 0f;
+                    VRCUiManager.prop_VRCUiManager_0.field_Private_Single_2 = 0f;
+                    VRCUiManager.prop_VRCUiManager_0.field_Private_List_1_String_0.Add($"[AltNetIk]: {packet.data}");
                     break;
             }
             Buttons.UpdateAllButtons();
