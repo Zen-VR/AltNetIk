@@ -124,8 +124,6 @@ namespace AltNetIk
 
                 if (!boneData.active)
                 {
-                    if (boneData.avatarKind == (short)VRCAvatarManager.AvatarKind.Loading)
-                        continue;
                     boneData.active = true;
                     boneData.playerPoseRecorder.enabled = false;
                     boneData.playerHandGestureController.enabled = false;
@@ -339,6 +337,7 @@ namespace AltNetIk
                     VRCUiManager.prop_VRCUiManager_0.field_Private_Single_1 = 0f;
                     VRCUiManager.prop_VRCUiManager_0.field_Private_Single_2 = 0f;
                     VRCUiManager.prop_VRCUiManager_0.field_Private_List_1_String_0.Add($"[AltNetIk]: {packet.data}");
+                    Logger.Warning($"Server message: {packet.data}");
                     break;
             }
             Buttons.UpdateAllButtons();

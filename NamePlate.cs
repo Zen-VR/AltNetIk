@@ -23,7 +23,7 @@ namespace AltNetIk
             stats.localPosition = new Vector3(0f, -58f, 0f);
             stats.transform.localScale = new Vector3(1f, 1f, 2f);
             stats.parent = player.gameObject.transform.Find("Player Nameplate/Canvas/Nameplate/Contents");
-            stats.gameObject.SetActive(true);
+            stats.gameObject.SetActive(false);
             TextMeshProUGUI namePlate = stats.Find("Trust Text").GetComponent<TextMeshProUGUI>();
             namePlate.color = Color.white;
             namePlate.text = "init";

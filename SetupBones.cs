@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using System.Collections.Generic;
 using UnityEngine;
 using VRC;
@@ -144,6 +144,15 @@ namespace AltNetIk
                 boneData.preQinvArray[index] = Quaternion.Inverse(preQ);
                 boneData.postQinvArray[index] = Quaternion.Inverse(postQ);
                 boneData.transforms[index] = animator.GetBoneTransform((HumanBodyBones)i);
+            }
+
+            bool hasPacketData = receiverPacketData.TryGetValue(photonId, out ReceiverPacketData packetData);
+            if (hasPacketData)
+            {
+                boneData.active = true;
+                boneData.playerPoseRecorder.enabled = false;
+                boneData.playerHandGestureController.enabled = false;
+                boneData.playerAnimControlNetSerializer.enabled = false;
             }
 
             receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
