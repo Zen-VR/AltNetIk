@@ -1,5 +1,6 @@
 ﻿using LiteNetLib;
 using LiteNetLib.Utils;
+using System.Diagnostics;
 
 namespace AltNetIk
 {
@@ -13,7 +14,8 @@ namespace AltNetIk
             public NetPeer peer;
             public string lobbyId;
             public int photonId;
-            public int exceptionCount;
+            public short exceptionCount;
+            public short locationsPerSecond;
         }
 
         private static Dictionary<int, LobbyUser> players = new Dictionary<int, LobbyUser>();
@@ -21,6 +23,7 @@ namespace AltNetIk
         public static readonly NetPacketProcessor netPacketProcessor = new NetPacketProcessor();
         public static readonly StreamWriter logFile = File.AppendText("EventLog.log");
         private static bool _running;
+        private static Stopwatch _stopWatch = new Stopwatch();
 
         private static void Main(string[] args)
         {
@@ -83,6 +86,12 @@ namespace AltNetIk
             {
                 try
                 {
+                    if (dataReader.RawDataSize > 1500)
+                    {
+                        LogEntry($"Kicked for packet size larger than 1500 bytes {fromPeer.EndPoint}");
+                        fromPeer.Disconnect();
+                        return;
+                    }
                     netPacketProcessor.ReadAllPackets(dataReader, fromPeer);
                     dataReader.Recycle();
                 }
@@ -111,13 +120,19 @@ namespace AltNetIk
 
             LogEntry($"Server started");
             _running = true;
+            _stopWatch.Start();
 
             new Thread(() =>
             {
                 while (_running)
                 {
-                    Thread.Sleep(5);
                     Server.PollEvents();
+                    if (_stopWatch.Elapsed > TimeSpan.FromSeconds(1))
+                    {
+                        _stopWatch.Restart();
+                        CheckLocationLimit();
+                    }
+                    Thread.Sleep(1);
                 }
 
                 LogEntry($"Server stopped");
@@ -179,13 +194,6 @@ namespace AltNetIk
             NetDataWriter writer = new NetDataWriter();
             netPacketProcessor.Write(writer, packet);
 
-            if (writer.Length > peer.Mtu)
-            {
-                LogEntry($"Kicked for IK packet too large {writer.Length}/{peer.Mtu} {peer.EndPoint}");
-                peer.Disconnect();
-                return;
-            }
-
             bool hasLobbyUser = players.TryGetValue(peer.Id, out LobbyUser lobbyUser);
             if (!hasLobbyUser || String.IsNullOrEmpty(lobbyUser.lobbyId) || !instances.ContainsKey(lobbyUser.lobbyId))
                 return;
@@ -199,8 +207,17 @@ namespace AltNetIk
 
             foreach (LobbyUser player in instances[lobbyUser.lobbyId].Values)
             {
-                if (peer != player.peer)
-                    player.peer.Send(writer, DeliveryMethod.Sequenced);
+                if (peer == player.peer)
+                    continue;
+
+                if (writer.Length > player.peer.GetMaxSinglePacketSize(DeliveryMethod.Sequenced))
+                {
+                    // split packet when receiver MTU is too small
+                    player.peer.Send(writer, DeliveryMethod.ReliableOrdered);
+                    continue;
+                }
+
+                player.peer.Send(writer, DeliveryMethod.Sequenced);
             }
         }
 
@@ -215,7 +232,7 @@ namespace AltNetIk
 
             if (lobbyUser.photonId != packet.photonId)
             {
-                LogEntry($"Param location/packet photonId mismatch {lobbyUser.photonId}/{packet.photonId} {peer.EndPoint}");
+                LogEntry($"Kicked for param location/packet photonId mismatch {lobbyUser.photonId}/{packet.photonId} {peer.EndPoint}");
                 peer.Disconnect();
                 return;
             }
@@ -269,7 +286,7 @@ namespace AltNetIk
                             // Check for any existing user with same photonId
                             foreach (LobbyUser player in instances[packet.lobbyHash].Values)
                             {
-                                if (player.photonId == packet.photonId && player.peer != peer)
+                                if (player.photonId == packet.photonId && player.peer.EndPoint.Address != peer.EndPoint.Address)
                                 {
                                     LogEntry($"Kicked for duplicate photonId, Instance: {packet.lobbyHash} PhotonId: {player.photonId} Current: {player.peer.EndPoint} Joining: {peer.EndPoint}");
                                     peer.Disconnect();
@@ -283,6 +300,7 @@ namespace AltNetIk
                     }
 
                     players[peer.Id].lobbyId = packet.lobbyHash;
+                    players[peer.Id].locationsPerSecond++;
                     LogEntry($"Peer location: {packet.lobbyHash} {packet.photonId} {peer.EndPoint}");
                     break;
 
@@ -316,6 +334,22 @@ namespace AltNetIk
             foreach (LobbyUser player in instances[lobbyHash].Values)
             {
                 player.peer.Send(writer, DeliveryMethod.ReliableOrdered);
+            }
+        }
+
+        public static void CheckLocationLimit()
+        {
+            // Check if any user has exceeded the location limit of 3 per second
+            foreach (LobbyUser player in players.Values)
+            {
+                if (player.locationsPerSecond > 3)
+                {
+                    LogEntry($"Kicked for exceeding location limit {player.locationsPerSecond}/3 {player.peer.EndPoint}");
+                    player.peer.Disconnect();
+                    continue;
+                }
+                if (player.locationsPerSecond > 0)
+                    player.locationsPerSecond = 0;
             }
         }
 
