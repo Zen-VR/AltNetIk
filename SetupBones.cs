@@ -13,7 +13,7 @@ namespace AltNetIk
         {
             int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
             int boneCount = 0;
-            bool[] boneList = new bool[55];
+            bool[] boneList = new bool[HumanTrait.BoneCount];
 
             var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
             var parameters = new Dictionary<string, AvatarParameter>();
@@ -81,13 +81,13 @@ namespace AltNetIk
             }
 
             var avatar = animator.avatar;
-            var hd = avatar.humanDescription;
-            var human = hd.human;
-            for (int i = 0; i < human.Length; i++)
+            foreach (HumanBone humanBone in avatar.humanDescription.human)
             {
-                HumanBone humanBone = human[i];
-                int boneIndex = boneNames.FindIndex(a => string.Equals(a, humanBone.humanName));
-                if (boneIndex < 0 || humanBone.humanName == "LeftEye" || humanBone.humanName == "RightEye")
+                if (humanBone.humanName.EndsWith("Eye"))
+                    continue;
+
+                int boneIndex = HumanTrait.BoneName.IndexOf(humanBone.humanName);
+                if (boneIndex < 0)
                     continue;
 
                 boneCount++;
@@ -97,7 +97,7 @@ namespace AltNetIk
             {
                 // legacy fallback
                 int bodyBoneIndex = -1;
-                for (int i = 0; i < 55; i++)
+                for (int i = 0; i < HumanTrait.BoneCount; i++)
                 {
                     HumanBodyBones bodyBone = (HumanBodyBones)i;
                     Transform bone = animator.GetBoneTransform(bodyBone);
@@ -133,7 +133,7 @@ namespace AltNetIk
             };
 
             int index = -1;
-            for (int i = 0; i < 55; i++)
+            for (int i = 0; i < HumanTrait.BoneCount; i++)
             {
                 if (!boneList[i])
                     continue;
@@ -162,7 +162,7 @@ namespace AltNetIk
         {
             int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
             int boneCount = 0;
-            bool[] boneList = new bool[55];
+            bool[] boneList = new bool[HumanTrait.BoneCount];
 
             var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
             var parameters = new Dictionary<string, AvatarParameter>();
@@ -235,13 +235,15 @@ namespace AltNetIk
             }
 
             var avatar = animator.avatar;
-            var hd = avatar.humanDescription;
-            var human = hd.human;
-            for (int i = 0; i < human.Length; i++)
+            foreach (HumanBone humanBone in avatar.humanDescription.human)
             {
-                HumanBone humanBone = human[i];
-                int boneIndex = boneNames.FindIndex(a => string.Equals(a, humanBone.humanName));
-                if (boneIndex < 0 || humanBone.humanName == "LeftEye" || humanBone.humanName == "RightEye")
+                string boneName = humanBone.humanName;
+
+                if (boneName.EndsWith("Eye"))
+                    continue;
+
+                int boneIndex = HumanTrait.BoneName.IndexOf(boneName);
+                if (boneIndex < 0)
                     continue;
 
                 boneCount++;
@@ -251,11 +253,14 @@ namespace AltNetIk
             {
                 // legacy fallback
                 int bodyBoneIndex = -1;
-                for (int i = 0; i < 55; i++)
+                for (int i = 0; i < HumanTrait.BoneCount; i++)
                 {
+                    if (i == (int)HumanBodyBones.LeftEye || i == (int)HumanBodyBones.RightEye)
+                        continue;
+
                     HumanBodyBones bodyBone = (HumanBodyBones)i;
                     Transform bone = animator.GetBoneTransform(bodyBone);
-                    if (bone == null || i == (int)HumanBodyBones.LeftEye || i == (int)HumanBodyBones.RightEye)
+                    if (bone == null)
                         continue;
 
                     bodyBoneIndex++;
@@ -281,7 +286,7 @@ namespace AltNetIk
             };
 
             int index = -1;
-            for (int i = 0; i < 55; i++)
+            for (int i = 0; i < HumanTrait.BoneCount; i++)
             {
                 if (!boneList[i])
                     continue;

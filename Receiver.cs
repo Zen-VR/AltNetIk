@@ -161,7 +161,7 @@ namespace AltNetIk
                     deltaFloat = 1.0f;
 
                 int index = -1;
-                for (int i = 0; i < 55; i++)
+                for (int i = 0; i < HumanTrait.BoneCount; i++)
                 {
                     if (!boneData.boneList[i])
                         continue;

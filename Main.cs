@@ -48,8 +48,6 @@ namespace AltNetIk
         private static PacketData senderPacketData = new PacketData();
         private static ParamData senderParamData = new ParamData();
 
-        private static List<string> boneNames = new List<string>();
-
         public static string color(string c, string s)
         { return $"<color={c}>{s}</color>"; } // stolen from MintLily
 
@@ -112,7 +110,6 @@ namespace AltNetIk
 
             _streamSafe = Environment.GetCommandLineArgs().Contains("-streamsafe");
             ReMod_Core_Downloader.LoadReModCore();
-            boneNames = HumanTrait.BoneName.ToList();
 
             netPacketProcessor.RegisterNestedType<PacketData.Quaternion>();
             netPacketProcessor.RegisterNestedType<PacketData.Vector3>();
