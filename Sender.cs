@@ -24,9 +24,9 @@ namespace AltNetIk
             netRotations = new PacketData.Quaternion[senderPlayerData.boneCount];
 
             int index = -1;
-            for (int i = 0; i < 55; i++)
+            foreach (bool bone in senderPlayerData.boneList)
             {
-                if (!senderPlayerData.boneList[i])
+                if (!bone)
                     continue;
                 index++;
 
@@ -112,7 +112,7 @@ namespace AltNetIk
             NetDataWriter writer = new NetDataWriter();
             EventData eventData = new EventData
             {
-                version = short.Parse(BuildInfo.Version.Substring(0, BuildInfo.Version.LastIndexOf(".")).Replace(".", "")),
+                version = short.Parse(BuildInfo.Version.Substring(0, BuildInfo.Version.LastIndexOf('.')).Replace(".", "")),
                 lobbyHash = currentInstanceIdHash,
                 photonId = currentPhotonId,
                 eventName = "LocationUpdate"
@@ -129,7 +129,7 @@ namespace AltNetIk
             NetDataWriter writer = new NetDataWriter();
             EventData eventData = new EventData
             {
-                version = short.Parse(BuildInfo.Version.Substring(0, BuildInfo.Version.LastIndexOf(".")).Replace(".", "")),
+                version = short.Parse(BuildInfo.Version.Substring(0, BuildInfo.Version.LastIndexOf('.')).Replace(".", "")),
                 lobbyHash = currentInstanceIdHash,
                 photonId = currentPhotonId,
                 eventName = "PlayerDisconnect"
