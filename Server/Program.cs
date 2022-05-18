@@ -374,12 +374,16 @@ namespace AltNetIk
         public static void UserCount()
         {
             int instancesWithUsers = 0;
+            int activeUserCount = 0;
             foreach (Dictionary<int, LobbyUser> instance in instances.Values)
             {
                 if (instance.Count > 1)
+                {
                     instancesWithUsers++;
+                    activeUserCount += instance.Count;
+                }
             }
-            Console.WriteLine($"[{GetDateTime()}] User Count: {players.Count} Instance Count: {instances.Count} Active User Count: {instancesWithUsers}");
+            Console.WriteLine($"[{GetDateTime()}] Users: {players.Count}\nActive Users: {activeUserCount}\nInstances: {instances.Count}\nActive Instances: {instancesWithUsers}");
         }
 
         public static void PlayerList()
