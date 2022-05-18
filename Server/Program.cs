@@ -1,4 +1,4 @@
-﻿using LiteNetLib;
+using LiteNetLib;
 using LiteNetLib.Utils;
 using System.Diagnostics;
 
@@ -86,12 +86,12 @@ namespace AltNetIk
             {
                 try
                 {
-                    if (dataReader.RawDataSize > 1500)
-                    {
-                        LogEntry($"Kicked for packet size larger than 1500 bytes {fromPeer.EndPoint}");
-                        fromPeer.Disconnect();
-                        return;
-                    }
+                    //if (dataReader.RawDataSize > 1500)
+                    //{
+                    //    LogEntry($"Kicked for packet size larger than 1500 bytes {fromPeer.EndPoint}");
+                    //    fromPeer.Disconnect();
+                    //    return;
+                    //}
                     netPacketProcessor.ReadAllPackets(dataReader, fromPeer);
                     dataReader.Recycle();
                 }
@@ -144,19 +144,29 @@ namespace AltNetIk
                 var input = Console.ReadLine();
                 switch (input)
                 {
+                    case "help":
+                        Console.WriteLine("help: this is help\n" +
+                        "stop: stop the server\n" +
+                        "count: user & instance count\n" +
+                        "plist: player list\n" +
+                        "ilist: instance list\n" +
+                        "msgAll <message>: message everyone\n" +
+                        "msgInstance <message>: message instance\n");
+                        break;
+
                     case "stop":
                         _running = false;
                         break;
 
-                    case "uc":
+                    case "count":
                         UserCount();
                         break;
 
-                    case "pl":
+                    case "plist":
                         PlayerList();
                         break;
 
-                    case "il":
+                    case "ilist":
                         InstanceList();
                         break;
 
@@ -363,7 +373,13 @@ namespace AltNetIk
 
         public static void UserCount()
         {
-            Console.WriteLine($"[{GetDateTime()}] User Count: {players.Count}");
+            int instancesWithUsers = 0;
+            foreach (Dictionary<int, LobbyUser> instance in instances.Values)
+            {
+                if (instance.Count > 1)
+                    instancesWithUsers++;
+            }
+            Console.WriteLine($"[{GetDateTime()}] User Count: {players.Count} Instance Count: {instances.Count} Active User Count: {instancesWithUsers}");
         }
 
         public static void PlayerList()
