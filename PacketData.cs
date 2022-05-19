@@ -1,96 +1,22 @@
 using LiteNetLib.Utils;
+using System.Runtime.Serialization;
 
 namespace AltNetIk
 {
     public class PacketData : INetSerializable
     {
-        public struct Vector3 : INetSerializable
-        {
-            public float x;
-            public float y;
-            public float z;
-
-            public Vector3(UnityEngine.Vector3 vector3)
-            {
-                x = vector3.x;
-                y = vector3.y;
-                z = vector3.z;
-            }
-
-            public static implicit operator Vector3(UnityEngine.Vector3 a) => new Vector3(a);
-
-            public static implicit operator UnityEngine.Vector3(Vector3 a) => new UnityEngine.Vector3(a.x, a.y, a.z);
-
-            public void Serialize(NetDataWriter writer)
-            {
-                writer.Put(x);
-                writer.Put(y);
-                writer.Put(z);
-            }
-
-            public void Deserialize(NetDataReader reader)
-            {
-                x = reader.GetFloat();
-                y = reader.GetFloat();
-                z = reader.GetFloat();
-            }
-        }
-
-        public struct Quaternion : INetSerializable
-        {
-            public float x;
-            public float y;
-            public float z;
-            public float w;
-
-            public Quaternion(UnityEngine.Quaternion quaternion)
-            {
-                x = quaternion.x;
-                y = quaternion.y;
-                z = quaternion.z;
-                w = quaternion.w;
-            }
-
-            public Quaternion(float X, float Y, float Z, float W)
-            {
-                this.x = X;
-                this.y = Y;
-                this.z = Z;
-                this.w = W;
-            }
-
-            public static implicit operator Quaternion(UnityEngine.Quaternion a) => new Quaternion(a);
-
-            public static implicit operator UnityEngine.Quaternion(Quaternion a) => new UnityEngine.Quaternion(a.x, a.y, a.z, a.w);
-
-            public void Serialize(NetDataWriter writer)
-            {
-                writer.Put(x);
-                writer.Put(y);
-                writer.Put(z);
-                writer.Put(w);
-            }
-
-            public void Deserialize(NetDataReader reader)
-            {
-                x = reader.GetFloat();
-                y = reader.GetFloat();
-                z = reader.GetFloat();
-                w = reader.GetFloat();
-            }
-        }
-
         public int photonId { get; set; }
         public int ping { get; set; }
         public bool frozen { get; set; }
         public short avatarKind { get; set; }
-        public byte boneCount { get; set; }
-        public Vector3 hipPosition { get; set; }
-        public Quaternion hipRotation { get; set; }
-        public Vector3 playerPosition { get; set; }
-        public Quaternion playerRotation { get; set; }
+        [IgnoreDataMember]
+        public int boneCount => boneRotations.Length;
+        public UnityEngine.Vector3 hipPosition { get; set; }
+        public UnityEngine.Quaternion hipRotation { get; set; }
+        public UnityEngine.Vector3 playerPosition { get; set; }
+        public UnityEngine.Quaternion playerRotation { get; set; }
         public bool[] boneList { get; set; }
-        public Quaternion[] boneRotations { get; set; }
+        public UnityEngine.Quaternion[] boneRotations { get; set; }
 
         public void Serialize(NetDataWriter writer)
         {
@@ -98,19 +24,13 @@ namespace AltNetIk
             writer.Put(ping);
             writer.Put(frozen);
             writer.Put(avatarKind);
-            writer.Put(boneCount);
 
-            writer.Put(hipPosition);
-            writer.Put(hipRotation);
-            writer.Put(playerPosition);
-            writer.Put(playerRotation);
-
-            writer.PutArray(boneList);
-
-            foreach (Quaternion boneRotation in boneRotations)
-            {
-                writer.Put(boneRotation);
-            }
+            Serializers.SerializeVector3(writer, hipPosition);
+            Serializers.SerializeQuaternion(writer, hipRotation);
+            Serializers.SerializeVector3(writer, playerPosition);
+            Serializers.SerializeQuaternion(writer, playerRotation);
+            Serializers.SerializePackedBoolArray(writer, boneList);
+            Serializers.SerializeQuaternionArray(writer, boneRotations);
         }
 
         public void Deserialize(NetDataReader reader)
@@ -119,20 +39,13 @@ namespace AltNetIk
             ping = reader.GetInt();
             frozen = reader.GetBool();
             avatarKind = reader.GetShort();
-            boneCount = reader.GetByte();
 
-            hipPosition = reader.Get<Vector3>();
-            hipRotation = reader.Get<Quaternion>();
-            playerPosition = reader.Get<Vector3>();
-            playerRotation = reader.Get<Quaternion>();
-
-            boneList = reader.GetBoolArray();
-
-            boneRotations = new Quaternion[boneCount];
-            for (int i = 0; i < boneCount; i++)
-            {
-                boneRotations[i] = reader.Get<Quaternion>();
-            }
+            hipPosition = Serializers.DeserializeVector3(reader);
+            hipRotation = Serializers.DeserializeQuaternion(reader);
+            playerPosition = Serializers.DeserializeVector3(reader);
+            playerRotation = Serializers.DeserializeQuaternion(reader);
+            boneList = Serializers.DeserializePackedBoolArray(reader);
+            boneRotations = Serializers.DeserializeQuaternionArray(reader);
         }
     }
 

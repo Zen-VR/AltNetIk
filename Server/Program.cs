@@ -1,6 +1,7 @@
 using LiteNetLib;
 using LiteNetLib.Utils;
 using System.Diagnostics;
+using UnityEngine;
 
 namespace AltNetIk
 {
@@ -31,8 +32,8 @@ namespace AltNetIk
             NetManager Server = new NetManager(listener);
             Server.Start(9052);
 
-            netPacketProcessor.RegisterNestedType<PacketData.Quaternion>();
-            netPacketProcessor.RegisterNestedType<PacketData.Vector3>();
+            netPacketProcessor.RegisterNestedType<Quaternion>(Serializers.SerializeQuaternion, Serializers.DeserializeQuaternion);
+            netPacketProcessor.RegisterNestedType<Vector3>(Serializers.SerializeVector3, Serializers.DeserializeVector3);
             netPacketProcessor.Subscribe<PacketData, NetPeer>(OnPacketReceived, () => new PacketData());
             netPacketProcessor.Subscribe<ParamData, NetPeer>(OnParamPacketReceived, () => new ParamData());
             netPacketProcessor.Subscribe<EventData, NetPeer>(OnEventPacketReceived, () => new EventData());

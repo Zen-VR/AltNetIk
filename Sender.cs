@@ -21,7 +21,7 @@ namespace AltNetIk
                 return;
             }
 
-            netRotations = new PacketData.Quaternion[senderPlayerData.boneCount];
+            netRotations = new Quaternion[senderPlayerData.boneCount];
 
             int index = -1;
             foreach (bool bone in senderPlayerData.boneList)
@@ -38,7 +38,6 @@ namespace AltNetIk
 
             senderPacketData.boneRotations = netRotations;
             senderPacketData.boneList = senderPlayerData.boneList;
-            senderPacketData.boneCount = (byte)senderPlayerData.boneCount;
             senderPacketData.playerPosition = senderPlayerData.playerTransform.position;
             senderPacketData.playerRotation = senderPlayerData.playerTransform.rotation;
             senderPacketData.photonId = currentPhotonId;

@@ -119,7 +119,7 @@ namespace AltNetIk
                     lastDeltaTime = lastDataBank.deltaTime;
                 var newDataBank = new DataBank
                 {
-                    boneRotations = new PacketData.Quaternion[boneData.boneCount]
+                    boneRotations = new Quaternion[boneData.boneCount]
                 };
 
                 if (!boneData.active)

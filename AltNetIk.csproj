@@ -71,6 +71,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -147,6 +148,7 @@
     <Compile Include="Sender.cs" />
     <Compile Include="SetupBones.cs" />
     <Compile Include="Structs.cs" />
+    <Compile Include="Serializers.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ILMerge.props" />

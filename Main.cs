@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -44,7 +45,7 @@ namespace AltNetIk
         private static ConcurrentDictionary<int, DataBank> receiverLastPacket = new ConcurrentDictionary<int, DataBank>();
         private static PlayerData senderPlayerData = new PlayerData();
 
-        private static PacketData.Quaternion[] netRotations;
+        private static Quaternion[] netRotations;
         private static PacketData senderPacketData = new PacketData();
         private static ParamData senderParamData = new ParamData();
 
@@ -111,8 +112,8 @@ namespace AltNetIk
             _streamSafe = Environment.GetCommandLineArgs().Contains("-streamsafe");
             ReMod_Core_Downloader.LoadReModCore();
 
-            netPacketProcessor.RegisterNestedType<PacketData.Quaternion>();
-            netPacketProcessor.RegisterNestedType<PacketData.Vector3>();
+            netPacketProcessor.RegisterNestedType<Quaternion>(Serializers.SerializeQuaternion, Serializers.DeserializeQuaternion);
+            netPacketProcessor.RegisterNestedType<Vector3>(Serializers.SerializeVector3, Serializers.DeserializeVector3);
             netPacketProcessor.Subscribe(OnEventPacketReceived, () => new EventData());
             netPacketProcessor.Subscribe(OnPacketReceived, () => new PacketData());
             netPacketProcessor.Subscribe(OnParamPacketReceived, () => new ParamData());
@@ -312,7 +313,8 @@ namespace AltNetIk
             }
         }
 
-        public static Quaternion LerpUnclamped(PacketData.Quaternion q1, PacketData.Quaternion q2, float t)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Quaternion LerpUnclamped(Quaternion q1, Quaternion q2, float t)
         {
             float negate = (q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w < 0) ? -1f : 1f;
             Quaternion r = new Quaternion
@@ -327,15 +329,16 @@ namespace AltNetIk
             {
                 if (r.w < 0)
                     len = -len;
-                r.x = r.x / len;
-                r.y = r.y / len;
-                r.z = r.z / len;
-                r.w = r.w / len;
+                r.x /= len;
+                r.y /= len;
+                r.z /= len;
+                r.w /= len;
             }
             return r;
         }
 
-        public static Vector3 LerpUnclamped(PacketData.Vector3 v1, PacketData.Vector3 v2, float t)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Vector3 LerpUnclamped(Vector3 v1, Vector3 v2, float t)
         {
             Vector3 r = new Vector3(
                 v1.x + (v2.x - v1.x) * t,

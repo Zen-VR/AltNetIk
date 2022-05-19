@@ -64,11 +64,11 @@ namespace AltNetIk
         {
             public Int64 timestamp;
             public int deltaTime;
-            public PacketData.Quaternion[] boneRotations;
-            public PacketData.Vector3 hipPosition;
-            public PacketData.Quaternion hipRotation;
-            public PacketData.Vector3 playerPosition;
-            public PacketData.Quaternion playerRotation;
+            public Quaternion[] boneRotations;
+            public Vector3 hipPosition;
+            public Quaternion hipRotation;
+            public Vector3 playerPosition;
+            public Quaternion playerRotation;
         }
     }
 }
