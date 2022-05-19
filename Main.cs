@@ -340,12 +340,12 @@ namespace AltNetIk
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 LerpUnclamped(Vector3 v1, Vector3 v2, float t)
         {
-            Vector3 r = new Vector3(
-                v1.x + (v2.x - v1.x) * t,
-                v1.y + (v2.y - v1.y) * t,
-                v1.z + (v2.z - v1.z) * t
-            );
-            return r;
+            return new Vector3
+            {
+                x = v1.x + (v2.x - v1.x) * t,
+                y = v1.y + (v2.y - v1.y) * t,
+                z = v1.z + (v2.z - v1.z) * t
+            };
         }
 
         public static int GetDeltaTime(ref int deltaTime, int deltaInt)
