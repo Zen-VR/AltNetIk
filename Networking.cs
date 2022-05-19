@@ -11,6 +11,7 @@ namespace AltNetIk
         {
             if (String.IsNullOrEmpty(serverIP))
                 yield break;
+            
             try
             {
                 listener = new EventBasedNetListener();
@@ -22,20 +23,14 @@ namespace AltNetIk
                 listener.NetworkReceiveEvent += OnNetworkReceive;
                 listener.PeerConnectedEvent += OnPeerConnected;
                 listener.PeerDisconnectedEvent += OnPeerDisconnected;
+                
+                Buttons.UpdateAllButtons();
             }
             catch (Exception e)
             {
                 Logger.Msg("Connection Error: " + e);
-                IsConnected = false;
-                if (client != null)
-                {
-                    client.DisconnectAll();
-                    client.Stop();
-                    client = null;
-                }
-                DisableReceivers();
+                DisconnectSilent();
             }
-            Buttons.UpdateAllButtons();
         }
 
         private void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)
@@ -72,15 +67,7 @@ namespace AltNetIk
                 Logger.Msg(ConsoleColor.Red, "Disconnected from server: " + disconnectInfo.Reason);
             }
 
-            IsConnected = false;
-            if (client != null)
-            {
-                client.DisconnectAll();
-                client.Stop();
-                client = null;
-            }
-            DisableReceivers();
-            Buttons.UpdateAllButtons();
+            DisconnectSilent();
         }
 
         private void AutoReconnect()
@@ -109,20 +96,30 @@ namespace AltNetIk
                 MelonCoroutines.Start(Connect());
         }
 
-        private void Disconnect()
+        private void DisconnectSilent()
         {
-            SendDisconnect();
             IsConnected = false;
-            ReconnectLastAttempt = 0;
             if (client != null)
             {
                 client.DisconnectAll();
                 client.Stop();
                 client = null;
-                Logger.Msg("Disconnected");
             }
             DisableReceivers();
             Buttons.UpdateAllButtons();
+        }
+        private void Disconnect()
+        {
+            SendDisconnect();
+
+            ReconnectLastAttempt = 0;
+            bool wasConnected = client != null;
+
+            DisconnectSilent();
+
+            if (wasConnected) {
+                Logger.Msg("Disconnected");
+            }
         }
     }
 }

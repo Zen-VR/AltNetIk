@@ -193,11 +193,7 @@ namespace AltNetIk
 
         public override void OnApplicationQuit()
         {
-            if (client != null)
-            {
-                client.DisconnectAll();
-                client.Stop();
-            }
+            DisconnectSilent();
         }
 
         public void ToggleSend()
