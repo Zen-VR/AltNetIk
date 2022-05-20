@@ -385,10 +385,11 @@ namespace AltNetIk
         {
             receiverPacketData.TryRemove(photonId, out _);
             bool hasReceiverPlayerData = receiverPlayerData.TryGetValue(photonId, out PlayerData playerData);
-            if (playerData.playerTransform == null)
-                return;
             if (hasReceiverPlayerData)
             {
+                if (playerData.playerTransform == null)
+                    return;
+                
                 playerData.active = false;
                 playerData.playerPoseRecorder.enabled = true;
                 playerData.playerHandGestureController.enabled = true;
