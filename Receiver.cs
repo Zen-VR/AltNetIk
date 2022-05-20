@@ -251,67 +251,53 @@ namespace AltNetIk
                 return;
 
             bool hasPlayerData = receiverPlayerData.TryGetValue(packet.photonId, out PlayerData playerData);
-            if (!hasPlayerData)
+            if (!hasPlayerData || playerData.parameters.Count < 18)
                 return;
 
-            short boolIndex = 0;
-            short intIndex = 0;
-            short floatIndex = 0;
-            for (int i = 0; i < packet.paramName.Length; i++)
-            {
-                bool hasParamName = playerData.parameters.TryGetValue(packet.paramName[i], out AvatarParameter parameter);
-                if (!hasParamName || parameter == null)
-                    continue;
+            var paramCount = packet.paramData.Length / 2;
+            if (paramCount < 18)
+                return;
 
+            var isFallback = playerData.avatarKind == (short)VRCAvatarManager.AvatarKind.Fallback;
+            if (playerData.parameters.Count != paramCount)
+                isFallback = true;
+
+            var byteIndex = 0;
+            for (int i = 0; i < paramCount; i++)
+            {
+                if (isFallback && i > 18) // Only apply default parameters to fallback avatars
+                    return;
+
+                var parameter = playerData.parameters[i];
                 var type = parameter.field_Private_ParameterType_0;
-                var senderType = (AvatarParameter.ParameterType)packet.paramType[i];
+                var senderType = (AvatarParameter.ParameterType)packet.paramData[byteIndex++];
+                var senderParam = packet.paramData[byteIndex++];
                 if (type != senderType)
-                    continue;
+                    return;
 
                 switch (type)
                 {
                     case AvatarParameter.ParameterType.Bool:
-                        _boolPropertySetterDelegate(parameter.Pointer, packet.boolParams[boolIndex]);
-                        boolIndex++;
+                        _boolPropertySetterDelegate(parameter.Pointer, senderParam != 0);
                         break;
 
                     case AvatarParameter.ParameterType.Int:
-                        _intPropertySetterDelegate(parameter.Pointer, packet.intParams[intIndex]);
-                        intIndex++;
+                        _intPropertySetterDelegate(parameter.Pointer, senderParam);
                         break;
 
                     case AvatarParameter.ParameterType.Float:
-                        _floatPropertySetterDelegate(parameter.Pointer, packet.floatParams[floatIndex]);
-                        floatIndex++;
+                        _floatPropertySetterDelegate(parameter.Pointer, (senderParam / 127f) - 1f);
                         break;
                 }
 
                 // Fix avatar limb grabber
-                if (packet.paramName[i] == "GestureLeft")
+                if (byteIndex == 6) // GestureLeft
                 {
-                    if (packet.intParams[intIndex - 1] == 1)
-                    {
-                        if (playerData.playerHandGestureController.field_Private_Gesture_0 != HandGestureController.Gesture.Fist)
-                            playerData.playerHandGestureController.field_Private_Gesture_0 = HandGestureController.Gesture.Fist;
-                    }
-                    else
-                    {
-                        if (playerData.playerHandGestureController.field_Private_Gesture_0 == HandGestureController.Gesture.Fist)
-                            playerData.playerHandGestureController.field_Private_Gesture_0 = HandGestureController.Gesture.None;
-                    }
+                    playerData.playerHandGestureController.field_Private_Gesture_0 = (HandGestureController.Gesture)senderParam;
                 }
-                else if (packet.paramName[i] == "GestureRight")
+                else if (byteIndex == 10) // GestureRight
                 {
-                    if (packet.intParams[intIndex - 1] == 1)
-                    {
-                        if (playerData.playerHandGestureController.field_Private_Gesture_2 != HandGestureController.Gesture.Fist)
-                            playerData.playerHandGestureController.field_Private_Gesture_2 = HandGestureController.Gesture.Fist;
-                    }
-                    else
-                    {
-                        if (playerData.playerHandGestureController.field_Private_Gesture_2 == HandGestureController.Gesture.Fist)
-                            playerData.playerHandGestureController.field_Private_Gesture_2 = HandGestureController.Gesture.None;
-                    }
+                    playerData.playerHandGestureController.field_Private_Gesture_2 = (HandGestureController.Gesture)senderParam;
                 }
             }
         }

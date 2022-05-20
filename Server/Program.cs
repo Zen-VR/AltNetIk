@@ -250,8 +250,17 @@ namespace AltNetIk
 
             foreach (LobbyUser player in instances[lobbyUser.lobbyId].Values)
             {
-                if (peer != player.peer)
+                if (peer == player.peer)
+                    continue;
+
+                if (writer.Length > player.peer.GetMaxSinglePacketSize(DeliveryMethod.Sequenced))
+                {
+                    // split packet when receiver MTU is too small
                     player.peer.Send(writer, DeliveryMethod.ReliableOrdered);
+                    continue;
+                }
+
+                player.peer.Send(writer, DeliveryMethod.Sequenced);
             }
         }
 

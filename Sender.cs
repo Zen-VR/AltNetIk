@@ -1,6 +1,7 @@
 using LiteNetLib;
 using LiteNetLib.Utils;
 using MelonLoader;
+using System;
 using System.Collections;
 using UnityEngine;
 using VRC.Playables;
@@ -60,49 +61,43 @@ namespace AltNetIk
 
             NetDataWriter writer = new NetDataWriter();
             netPacketProcessor.Write(writer, senderPacketData);
-            if (writer.Length > serverPeer.Mtu)
-                Logger.Error($"IK packet too large {writer.Length}/{serverPeer.Mtu}");
-            serverPeer.Send(writer, DeliveryMethod.Sequenced);
+            if (writer.Length > serverPeer.GetMaxSinglePacketSize(DeliveryMethod.Sequenced))
+                serverPeer.Send(writer, DeliveryMethod.ReliableOrdered);
+            else
+                serverPeer.Send(writer, DeliveryMethod.Sequenced);
 
             // Send params
             if (senderPlayerData.parameters.Count == 0)
                 yield break;
 
-            short index = 0;
-            short boolIndex = 0;
-            short intIndex = 0;
-            short floatIndex = 0;
-            foreach (var parameter in senderPlayerData.parameters.Values)
+            var byteIndex = 0;
+            foreach (var parameter in senderPlayerData.parameters)
             {
                 var type = parameter.field_Private_ParameterType_0;
+                senderParamData.paramData[byteIndex++] = (byte)type;
                 switch (type)
                 {
                     case AvatarParameter.ParameterType.Bool:
-                        senderParamData.boolParams[boolIndex] = parameter.field_Private_Boolean_0;
-                        boolIndex++;
+                        senderParamData.paramData[byteIndex++] = Convert.ToByte(parameter.field_Private_Boolean_0);
                         break;
 
                     case AvatarParameter.ParameterType.Int:
-                        senderParamData.intParams[intIndex] = (short)parameter.field_Private_Int32_1;
-                        intIndex++;
+                        senderParamData.paramData[byteIndex++] = (byte)parameter.field_Private_Int32_1;
                         break;
 
                     case AvatarParameter.ParameterType.Float:
-                        senderParamData.floatParams[floatIndex] = parameter.field_Private_Single_0;
-                        floatIndex++;
+                        senderParamData.paramData[byteIndex++] = (byte)((parameter.field_Private_Single_0 + 1f) * 127f);
                         break;
                 }
-                senderParamData.paramType[index] = (short)type;
-                senderParamData.paramName[index] = parameter.field_Private_String_0;
-                index++;
             }
             senderParamData.photonId = currentPhotonId;
 
             writer.Reset();
             netPacketProcessor.Write(writer, senderParamData);
-            serverPeer.Send(writer, DeliveryMethod.ReliableOrdered);
-
-            yield break;
+            if (writer.Length > serverPeer.GetMaxSinglePacketSize(DeliveryMethod.Sequenced))
+                serverPeer.Send(writer, DeliveryMethod.ReliableOrdered);
+            else
+                serverPeer.Send(writer, DeliveryMethod.Sequenced);
         }
 
         public IEnumerator SendLocationData()
@@ -118,8 +113,6 @@ namespace AltNetIk
             };
             netPacketProcessor.Write(writer, eventData);
             serverPeer.Send(writer, DeliveryMethod.ReliableOrdered);
-
-            yield break;
         }
 
         public void SendDisconnect()

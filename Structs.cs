@@ -39,7 +39,7 @@ namespace AltNetIk
             public Transform[] transforms;
             public int boneCount;
             public bool[] boneList;
-            public Dictionary<string, AvatarParameter> parameters;
+            public List<AvatarParameter> parameters;
             public bool active;
             public bool isSdk2;
         }

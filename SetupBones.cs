@@ -16,7 +16,7 @@ namespace AltNetIk
             bool[] boneList = new bool[HumanTrait.BoneCount];
 
             var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
-            var parameters = new Dictionary<string, AvatarParameter>();
+            var parameters = new List<AvatarParameter>();
             short boolParams = 0;
             short intParams = 0;
             short floatParams = 0;
@@ -45,7 +45,7 @@ namespace AltNetIk
                             break;
                     }
 
-                    parameters.Add(parameterName, param);
+                    parameters.Add(param);
                 }
             }
 
@@ -165,14 +165,11 @@ namespace AltNetIk
             bool[] boneList = new bool[HumanTrait.BoneCount];
 
             var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
-            var parameters = new Dictionary<string, AvatarParameter>();
+            var parameters = new List<AvatarParameter>();
             senderParamData = new ParamData();
-            short totalParams = 0;
-            short boolParams = 0;
-            short intParams = 0;
-            short floatParams = 0;
             if (avatarParams != null)
             {
+                var paramCount = 0;
                 foreach (var param in avatarParams.Values)
                 {
                     // don't want to send our IsLocal status to others. that makes no sense.
@@ -180,32 +177,13 @@ namespace AltNetIk
                     if (parameterName == "IsLocal")
                         continue;
 
-                    var type = param.field_Private_ParameterType_0;
-                    switch (type)
-                    {
-                        case AvatarParameter.ParameterType.Bool:
-                            boolParams++;
-                            break;
-
-                        case AvatarParameter.ParameterType.Int:
-                            intParams++;
-                            break;
-
-                        case AvatarParameter.ParameterType.Float:
-                            floatParams++;
-                            break;
-                    }
-
-                    parameters.Add(parameterName, param);
-                    totalParams++;
+                    paramCount++;
+                    parameters.Add(param);
                 }
                 senderParamData = new ParamData
                 {
-                    paramName = new string[totalParams],
-                    paramType = new short[totalParams],
-                    boolParams = new bool[boolParams],
-                    intParams = new short[intParams],
-                    floatParams = new float[floatParams]
+                    photonId = photonId,
+                    paramData = new byte[paramCount * 2]
                 };
             }
 

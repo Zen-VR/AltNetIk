@@ -52,34 +52,18 @@ namespace AltNetIk
     public class ParamData : INetSerializable
     {
         public int photonId { get; set; }
-        public string[] paramName { get; set; }
-        public short[] paramType { get; set; }
-        public bool[] boolParams { get; set; }
-        public short[] intParams { get; set; }
-        public float[] floatParams { get; set; }
+        public byte[] paramData { get; set; }
 
         public void Serialize(NetDataWriter writer)
         {
             writer.Put(photonId);
-
-            writer.PutArray(paramName);
-            writer.PutArray(paramType);
-
-            writer.PutArray(boolParams);
-            writer.PutArray(intParams);
-            writer.PutArray(floatParams);
+            writer.PutBytesWithLength(paramData);
         }
 
         public void Deserialize(NetDataReader reader)
         {
             photonId = reader.GetInt();
-
-            paramName = reader.GetStringArray();
-            paramType = reader.GetShortArray();
-
-            boolParams = reader.GetBoolArray();
-            intParams = reader.GetShortArray();
-            floatParams = reader.GetFloatArray();
+            paramData = reader.GetBytesWithLength();
         }
     }
 
