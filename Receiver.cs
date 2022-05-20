@@ -1,11 +1,14 @@
 using MelonLoader;
 using System;
+using System.Numerics;
 using UnhollowerRuntimeLib;
-using UnityEngine;
 using VRC.Dynamics;
 using VRC.Playables;
 using VRC.SDK3.Dynamics.PhysBone.Components;
+using Component = UnityEngine.Component;
+using GameObject = UnityEngine.GameObject;
 using Object = UnityEngine.Object;
+using Transform = UnityEngine.Transform;
 
 namespace AltNetIk
 {
@@ -54,23 +57,17 @@ namespace AltNetIk
                 {
                     packetData.lastTimeReceived = date;
                 }
+
                 if (packetData.avatarKind != packet.avatarKind || packetData.boneCount != packet.boneCount)
                 {
                     packetData.avatarKind = packet.avatarKind;
                     packetData.boneCount = packet.boneCount;
-                    packetData.dataBank1 = dataBank;
-                    packetData.dataBank2 = dataBank;
-                }
-
-                if (packetData.bankSelector == 1)
-                {
-                    packetData.bankSelector = 2;
-                    packetData.dataBank2 = dataBank;
+                    packetData.dataBankA = dataBank;
+                    packetData.dataBankB = dataBank;
                 }
                 else
                 {
-                    packetData.bankSelector = 1;
-                    packetData.dataBank1 = dataBank;
+                    packetData.SwapDataBanks(dataBank);
                 }
 
                 receiverPacketData.AddOrUpdate(packet.photonId, packetData, (k, v) => packetData);
@@ -88,9 +85,8 @@ namespace AltNetIk
                     frozen = packet.frozen,
                     boneCount = packet.boneCount,
                     boneList = packet.boneList,
-                    dataBank1 = dataBank,
-                    dataBank2 = dataBank,
-                    bankSelector = 1,
+                    dataBankA = dataBank,
+                    dataBankB = dataBank,
                     packetsPerSecond = 1,
                     lastTimeReceived = date
                 };
@@ -115,8 +111,10 @@ namespace AltNetIk
 
                 int lastDeltaTime = 0;
                 bool hasLastDataBank = receiverLastPacket.TryGetValue(photonId, out DataBank lastDataBank);
+                
                 if (hasLastDataBank)
                     lastDeltaTime = lastDataBank.deltaTime;
+                
                 var newDataBank = new DataBank
                 {
                     boneRotations = new Quaternion[boneData.boneCount]
@@ -131,28 +129,22 @@ namespace AltNetIk
                     receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
                 }
 
-                Int64 date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                var dataBankA = packetData.dataBankA;
+                var dataBankB = packetData.dataBankB;
+
+                long date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 float deltaFloat;
-                if (packetData.dataBank1.timestamp == packetData.dataBank2.timestamp)
+                if (dataBankA.timestamp == dataBankB.timestamp)
                 {
                     deltaFloat = 1.0f;
                 }
-                else if (packetData.bankSelector == 1)
-                {
-                    double date0 = date - packetData.dataBank1.timestamp;
-                    long newDeltaTime = packetData.dataBank1.timestamp - packetData.dataBank2.timestamp;
-                    double deltaTime = GetDeltaTime(ref lastDataBank.deltaTime, (int)newDeltaTime);
-                    newDataBank.deltaTime = lastDataBank.deltaTime;
-                    double delta = Math.Round((deltaTime - date0) / deltaTime * 100, 2) / 100;
-                    deltaFloat = (float)-delta + 1;
-                }
                 else
                 {
-                    double date1 = date - packetData.dataBank2.timestamp;
-                    long newDeltaTime = packetData.dataBank2.timestamp - packetData.dataBank1.timestamp;
+                    double oldDeltaTime = date - dataBankA.timestamp;
+                    long newDeltaTime = dataBankA.timestamp - dataBankB.timestamp;
                     double deltaTime = GetDeltaTime(ref lastDataBank.deltaTime, (int)newDeltaTime);
                     newDataBank.deltaTime = lastDataBank.deltaTime;
-                    double delta = Math.Round((deltaTime - date1) / deltaTime * 100, 2) / 100;
+                    double delta = Math.Round((deltaTime - oldDeltaTime) / deltaTime * 100, 2) / 100;
                     deltaFloat = (float)-delta + 1;
                 }
 
@@ -161,85 +153,55 @@ namespace AltNetIk
                     deltaFloat = 1.0f;
 
                 int index = -1;
-                for (int i = 0; i < HumanTrait.BoneCount; i++)
+                for (int i = 0; i < UnityEngine.HumanTrait.BoneCount; i++)
                 {
                     if (!boneData.boneList[i])
                         continue;
+                    
                     index++;
 
                     if (packetData.boneCount <= index || boneData.boneCount <= index)
                         break;
+                    
                     if (!packetData.boneList[i] || !boneData.transforms[index] || i == 0)
                         continue;
 
-                    Quaternion boneRotation;
-                    if (packetData.bankSelector == 1)
+                    Quaternion boneRotation = Quaternion.Slerp(dataBankB.boneRotations[index], dataBankA.boneRotations[index], deltaFloat);
+
+                    newDataBank.boneRotations[index] = boneRotation;
+                    boneData.transforms[index].localRotation = (boneData.preQArray[index] * boneRotation * boneData.postQinvArray[index]).ToUnity();
+                }
+
+                var hipPosition = Vector3.Lerp(dataBankB.hipPosition, dataBankA.hipPosition, deltaFloat);
+                var playerPosition = Vector3.Lerp(dataBankB.playerPosition, dataBankA.playerPosition, deltaFloat);
+                var playerRotation = Quaternion.Slerp(dataBankB.playerRotation, dataBankA.playerRotation, deltaFloat);
+
+                newDataBank.hipPosition = hipPosition;
+                newDataBank.playerPosition = playerPosition;
+                newDataBank.playerRotation = playerRotation;
+
+                boneData.playerTransform.SetPositionAndRotation(playerPosition.ToUnity(), playerRotation.ToUnity());
+                if (boneData.transforms.Length > 0 && boneData.transforms[0] != null)
+                {
+                    if (packetData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom)
                     {
-                        boneRotation = LerpUnclamped(packetData.dataBank2.boneRotations[index], packetData.dataBank1.boneRotations[index], deltaFloat);
+                        Quaternion hipRotation = Quaternion.Slerp(dataBankB.boneRotations[0], dataBankA.boneRotations[0], deltaFloat);
+
+                        newDataBank.boneRotations[0] = hipRotation;
+
+                        boneData.transforms[0].position = hipPosition.ToUnity();
+                        boneData.transforms[0].localRotation = (boneData.preQArray[0] * hipRotation * boneData.postQinvArray[0]).ToUnity();
                     }
                     else
                     {
-                        boneRotation = LerpUnclamped(packetData.dataBank1.boneRotations[index], packetData.dataBank2.boneRotations[index], deltaFloat);
-                    }
+                        Quaternion boneRotation = Quaternion.Slerp(dataBankB.hipRotation, dataBankA.hipRotation, deltaFloat);
+                        Quaternion hipRotation = boneData.preQArray[0] * boneRotation * boneData.postQinvArray[0];
 
-                    newDataBank.boneRotations[index] = boneRotation;
-                    boneData.transforms[index].localRotation = boneData.preQArray[index] * boneRotation * boneData.postQinvArray[index];
+                        newDataBank.hipRotation = hipRotation;
+                        boneData.transforms[0].SetPositionAndRotation(hipPosition.ToUnity(), hipRotation.ToUnity());
+                    }
                 }
 
-                if (packetData.bankSelector == 1)
-                {
-                    Quaternion playerRotation = LerpUnclamped(packetData.dataBank2.playerRotation, packetData.dataBank1.playerRotation, deltaFloat);
-                    newDataBank.playerRotation = playerRotation;
-                    Vector3 playerPosition = LerpUnclamped(packetData.dataBank2.playerPosition, packetData.dataBank1.playerPosition, deltaFloat);
-                    newDataBank.playerPosition = playerPosition;
-                    Vector3 hipPosition = LerpUnclamped(packetData.dataBank2.hipPosition, packetData.dataBank1.hipPosition, deltaFloat);
-                    newDataBank.hipPosition = hipPosition;
-                    boneData.playerTransform.SetPositionAndRotation(playerPosition, playerRotation);
-                    if (boneData.transforms.Length > 0 && boneData.transforms[0] != null)
-                    {
-                        if (packetData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom)
-                        {
-                            boneData.transforms[0].position = hipPosition;
-                            Quaternion hipRotation = LerpUnclamped(packetData.dataBank2.boneRotations[0], packetData.dataBank1.boneRotations[0], deltaFloat);
-                            newDataBank.boneRotations[0] = hipRotation;
-                            boneData.transforms[0].localRotation = boneData.preQArray[0] * hipRotation * boneData.postQinvArray[0];
-                        }
-                        else
-                        {
-                            Quaternion boneRotation = LerpUnclamped(packetData.dataBank2.hipRotation, packetData.dataBank1.hipRotation, deltaFloat);
-                            Quaternion hipRotation = boneData.preQArray[0] * boneRotation * boneData.postQinvArray[0];
-                            newDataBank.hipRotation = hipRotation;
-                            boneData.transforms[0].SetPositionAndRotation(hipPosition, hipRotation);
-                        }
-                    }
-                }
-                else
-                {
-                    Quaternion playerRotation = LerpUnclamped(packetData.dataBank1.playerRotation, packetData.dataBank2.playerRotation, deltaFloat);
-                    newDataBank.playerRotation = playerRotation;
-                    Vector3 playerPosition = LerpUnclamped(packetData.dataBank1.playerPosition, packetData.dataBank2.playerPosition, deltaFloat);
-                    newDataBank.playerPosition = playerPosition;
-                    Vector3 hipPosition = LerpUnclamped(packetData.dataBank1.hipPosition, packetData.dataBank2.hipPosition, deltaFloat);
-                    newDataBank.hipPosition = hipPosition;
-                    boneData.playerTransform.SetPositionAndRotation(playerPosition, playerRotation);
-                    if (boneData.transforms.Length > 0 && boneData.transforms[0] != null)
-                    {
-                        if (packetData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom)
-                        {
-                            boneData.transforms[0].position = hipPosition;
-                            Quaternion hipRotation = LerpUnclamped(packetData.dataBank1.boneRotations[0], packetData.dataBank2.boneRotations[0], deltaFloat);
-                            newDataBank.boneRotations[0] = hipRotation;
-                            boneData.transforms[0].localRotation = boneData.preQArray[0] * hipRotation * boneData.postQinvArray[0];
-                        }
-                        else
-                        {
-                            Quaternion boneRotation = LerpUnclamped(packetData.dataBank1.hipRotation, packetData.dataBank2.hipRotation, deltaFloat);
-                            Quaternion hipRotation = boneData.preQArray[0] * boneRotation * boneData.postQinvArray[0];
-                            newDataBank.hipRotation = hipRotation;
-                            boneData.transforms[0].SetPositionAndRotation(hipPosition, hipRotation);
-                        }
-                    }
-                }
                 newDataBank.timestamp = date;
                 receiverLastPacket.AddOrUpdate(photonId, newDataBank, (k, v) => newDataBank);
             }
@@ -353,7 +315,7 @@ namespace AltNetIk
                     if (hasPlayerNamePlate)
                     {
                         namePlateInfo.namePlate.SetActive(false);
-                        namePlateInfo.namePlateStatusLine.localPosition = new Vector3(0.0066f, -58f, 0f);
+                        namePlateInfo.namePlateStatusLine.localPosition = new UnityEngine.Vector3 { x = 0.0066f, y = -58f, z = 0f };
                     }
                     RemoveFreeze(packetData.photonId);
                 }
@@ -437,7 +399,7 @@ namespace AltNetIk
             if (hasPlayerNamePlate)
             {
                 namePlateInfo.namePlate.SetActive(false);
-                namePlateInfo.namePlateStatusLine.localPosition = new Vector3(0.0066f, -58f, 0f);
+                namePlateInfo.namePlateStatusLine.localPosition = new UnityEngine.Vector3 { x = 0.0066f, y = -58f, z = 0f };
             }
             RemoveFreeze(photonId);
         }

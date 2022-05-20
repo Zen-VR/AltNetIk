@@ -1,17 +1,25 @@
 using LiteNetLib;
 using LiteNetLib.Utils;
 using System.Diagnostics;
-using UnityEngine;
 
 namespace AltNetIk
 {
     public static class Server
     {
-        public static string version = "1.3.0";
-        public static short versionNum = short.Parse(version.Substring(0, version.LastIndexOf(".")).Replace(".", "")); // 1.3.0 -> 13
+        public const string version = "1.3.0";
+        public static readonly short versionNum = short.Parse(version[..version.LastIndexOf('.')].Replace(".", "")); // 1.3.0 -> 13
 
         public class LobbyUser
         {
+            public LobbyUser(NetPeer peer)
+            {
+                this.peer = peer;
+                lobbyId = "";
+                photonId = -1;
+                exceptionCount = 0;
+                locationsPerSecond = 0;
+            }
+
             public NetPeer peer;
             public string lobbyId;
             public int photonId;
@@ -19,12 +27,12 @@ namespace AltNetIk
             public short locationsPerSecond;
         }
 
-        private static Dictionary<int, LobbyUser> players = new Dictionary<int, LobbyUser>();
-        private static Dictionary<string, Dictionary<int, LobbyUser>> instances = new Dictionary<string, Dictionary<int, LobbyUser>>();
+        private static readonly Dictionary<int, LobbyUser> players = new Dictionary<int, LobbyUser>();
+        private static readonly Dictionary<string, Dictionary<int, LobbyUser>> instances = new Dictionary<string, Dictionary<int, LobbyUser>>();
         public static readonly NetPacketProcessor netPacketProcessor = new NetPacketProcessor();
         public static readonly StreamWriter logFile = File.AppendText("EventLog.log");
         private static bool _running;
-        private static Stopwatch _stopWatch = new Stopwatch();
+        private static readonly Stopwatch _stopWatch = new Stopwatch();
 
         private static void Main(string[] args)
         {
@@ -32,8 +40,8 @@ namespace AltNetIk
             NetManager Server = new NetManager(listener);
             Server.Start(9052);
 
-            netPacketProcessor.RegisterNestedType<Quaternion>(Serializers.SerializeQuaternion, Serializers.DeserializeQuaternion);
-            netPacketProcessor.RegisterNestedType<Vector3>(Serializers.SerializeVector3, Serializers.DeserializeVector3);
+            netPacketProcessor.RegisterNestedType<System.Numerics.Quaternion>(Serializers.SerializeQuaternion, Serializers.DeserializeQuaternion);
+            netPacketProcessor.RegisterNestedType<System.Numerics.Vector3>(Serializers.SerializeVector3, Serializers.DeserializeVector3);
             netPacketProcessor.Subscribe<PacketData, NetPeer>(OnPacketReceived, () => new PacketData());
             netPacketProcessor.Subscribe<ParamData, NetPeer>(OnParamPacketReceived, () => new ParamData());
             netPacketProcessor.Subscribe<EventData, NetPeer>(OnEventPacketReceived, () => new EventData());
@@ -46,7 +54,7 @@ namespace AltNetIk
             listener.PeerConnectedEvent += peer =>
             {
                 LogEntry($"Peer connected: {peer.EndPoint}");
-                players.Add(peer.Id, new LobbyUser() { peer = peer, lobbyId = "", photonId = -1 });
+                players.Add(peer.Id, new LobbyUser(peer));
             };
 
             listener.PeerDisconnectedEvent += (peer, disconnectInfo) =>

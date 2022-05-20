@@ -1,11 +1,13 @@
 ﻿using MelonLoader;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using TMPro;
-using UnityEngine;
 using VRC;
 using VRC.Networking;
 using VRC.Playables;
+using GameObject = UnityEngine.GameObject;
+using Transform = UnityEngine.Transform;
 
 namespace AltNetIk
 {
@@ -20,7 +22,8 @@ namespace AltNetIk
             public Transform namePlateStatusLine;
         }
 
-        public struct PlayerData
+        // Large structure, must be class to avoid deepcopies
+        public class PlayerData
         {
             public int photonId;
             public bool frozen;
@@ -52,17 +55,22 @@ namespace AltNetIk
             public short avatarKind;
             public int boneCount;
             public bool[] boneList;
-            public DataBank dataBank1;
-            public DataBank dataBank2;
-            public short bankSelector;
+            public DataBank dataBankA;
+            public DataBank dataBankB;
 
             public int packetsPerSecond;
-            public Int64 lastTimeReceived;
+            public long lastTimeReceived;
+
+            public void SwapDataBanks(DataBank dataBank)
+            {
+                (dataBankA, dataBankB) = (dataBankB, dataBank);
+            }
         }
 
-        public struct DataBank
+        // Large structure, must be class to avoid deepcopies
+        public class DataBank
         {
-            public Int64 timestamp;
+            public long timestamp;
             public int deltaTime;
             public Quaternion[] boneRotations;
             public Vector3 hipPosition;

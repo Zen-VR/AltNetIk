@@ -7,7 +7,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -45,7 +44,7 @@ namespace AltNetIk
         private static ConcurrentDictionary<int, DataBank> receiverLastPacket = new ConcurrentDictionary<int, DataBank>();
         private static PlayerData senderPlayerData = new PlayerData();
 
-        private static Quaternion[] netRotations;
+        private static System.Numerics.Quaternion[] netRotations;
         private static PacketData senderPacketData = new PacketData();
         private static ParamData senderParamData = new ParamData();
 
@@ -112,8 +111,8 @@ namespace AltNetIk
             _streamSafe = Environment.GetCommandLineArgs().Contains("-streamsafe");
             ReMod_Core_Downloader.LoadReModCore();
 
-            netPacketProcessor.RegisterNestedType<Quaternion>(Serializers.SerializeQuaternion, Serializers.DeserializeQuaternion);
-            netPacketProcessor.RegisterNestedType<Vector3>(Serializers.SerializeVector3, Serializers.DeserializeVector3);
+            netPacketProcessor.RegisterNestedType<System.Numerics.Quaternion>(Serializers.SerializeQuaternion, Serializers.DeserializeQuaternion);
+            netPacketProcessor.RegisterNestedType<System.Numerics.Vector3>(Serializers.SerializeVector3, Serializers.DeserializeVector3);
             netPacketProcessor.Subscribe(OnEventPacketReceived, () => new EventData());
             netPacketProcessor.Subscribe(OnPacketReceived, () => new PacketData());
             netPacketProcessor.Subscribe(OnParamPacketReceived, () => new ParamData());
@@ -307,41 +306,6 @@ namespace AltNetIk
                 boneData.avatarKind = (short)avatarManager.field_Private_AvatarKind_0;
                 receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
             }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Quaternion LerpUnclamped(Quaternion q1, Quaternion q2, float t)
-        {
-            float negate = (q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w < 0) ? -1f : 1f;
-            Quaternion r = new Quaternion
-            {
-                x = q1.x + t * (negate * q2.x - q1.x),
-                y = q1.y + t * (negate * q2.y - q1.y),
-                z = q1.z + t * (negate * q2.z - q1.z),
-                w = q1.w + t * (negate * q2.w - q1.w)
-            };
-            float len = (float)Math.Sqrt(r.x * r.x + r.y * r.y + r.z * r.z + r.w * r.w);
-            if (len > 0)
-            {
-                if (r.w < 0)
-                    len = -len;
-                r.x /= len;
-                r.y /= len;
-                r.z /= len;
-                r.w /= len;
-            }
-            return r;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 LerpUnclamped(Vector3 v1, Vector3 v2, float t)
-        {
-            return new Vector3
-            {
-                x = v1.x + (v2.x - v1.x) * t,
-                y = v1.y + (v2.y - v1.y) * t,
-                z = v1.z + (v2.z - v1.z) * t
-            };
         }
 
         public static int GetDeltaTime(ref int deltaTime, int deltaInt)

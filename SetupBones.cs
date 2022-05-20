@@ -1,9 +1,9 @@
 using MelonLoader;
 using System.Collections.Generic;
-using UnityEngine;
 using VRC;
 using VRC.Networking;
 using VRC.Playables;
+using System.Numerics;
 
 namespace AltNetIk
 {
@@ -13,7 +13,7 @@ namespace AltNetIk
         {
             int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
             int boneCount = 0;
-            bool[] boneList = new bool[HumanTrait.BoneCount];
+            bool[] boneList = new bool[UnityEngine.HumanTrait.BoneCount];
 
             var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
             var parameters = new List<AvatarParameter>();
@@ -51,7 +51,7 @@ namespace AltNetIk
 
             var animationController = player.field_Private_AnimatorControllerManager_0;
 
-            Animator animator = avatarManager.field_Private_Animator_0;
+            UnityEngine.Animator animator = avatarManager.field_Private_Animator_0;
             bool isSdk2 = avatarManager.prop_VRCAvatarDescriptor_0 == null;
             if (animator == null || animator.avatar == null || !animator.avatar.isHuman)
             {
@@ -68,7 +68,7 @@ namespace AltNetIk
                     preQinvArray = new Quaternion[boneCount],
                     postQArray = new Quaternion[boneCount],
                     postQinvArray = new Quaternion[boneCount],
-                    transforms = new Transform[boneCount],
+                    transforms = new UnityEngine.Transform[boneCount],
                     boneCount = boneCount,
                     boneList = boneList,
                     parameters = parameters,
@@ -81,12 +81,12 @@ namespace AltNetIk
             }
 
             var avatar = animator.avatar;
-            foreach (HumanBone humanBone in avatar.humanDescription.human)
+            foreach (UnityEngine.HumanBone humanBone in avatar.humanDescription.human)
             {
                 if (humanBone.humanName.EndsWith("Eye"))
                     continue;
 
-                int boneIndex = HumanTrait.BoneName.IndexOf(humanBone.humanName);
+                int boneIndex = UnityEngine.HumanTrait.BoneName.IndexOf(humanBone.humanName);
                 if (boneIndex < 0)
                     continue;
 
@@ -97,11 +97,11 @@ namespace AltNetIk
             {
                 // legacy fallback
                 int bodyBoneIndex = -1;
-                for (int i = 0; i < HumanTrait.BoneCount; i++)
+                for (int i = 0; i < UnityEngine.HumanTrait.BoneCount; i++)
                 {
-                    HumanBodyBones bodyBone = (HumanBodyBones)i;
-                    Transform bone = animator.GetBoneTransform(bodyBone);
-                    if (bone == null || i == (int)HumanBodyBones.LeftEye || i == (int)HumanBodyBones.RightEye)
+                    UnityEngine.HumanBodyBones bodyBone = (UnityEngine.HumanBodyBones)i;
+                    UnityEngine.Transform bone = animator.GetBoneTransform(bodyBone);
+                    if (bone == null || i == (int)UnityEngine.HumanBodyBones.LeftEye || i == (int)UnityEngine.HumanBodyBones.RightEye)
                         continue;
 
                     bodyBoneIndex++;
@@ -123,7 +123,7 @@ namespace AltNetIk
                 preQinvArray = new Quaternion[boneCount],
                 postQArray = new Quaternion[boneCount],
                 postQinvArray = new Quaternion[boneCount],
-                transforms = new Transform[boneCount],
+                transforms = new UnityEngine.Transform[boneCount],
                 boneCount = boneCount,
                 boneList = boneList,
                 parameters = parameters,
@@ -133,17 +133,17 @@ namespace AltNetIk
             };
 
             int index = -1;
-            for (int i = 0; i < HumanTrait.BoneCount; i++)
+            for (int i = 0; i < UnityEngine.HumanTrait.BoneCount; i++)
             {
                 if (!boneList[i])
                     continue;
                 index++;
 
-                Quaternion preQ = boneData.preQArray[index] = avatar.GetPreRotation(i);
-                Quaternion postQ = boneData.postQArray[index] = avatar.GetPostRotation(i);
+                Quaternion preQ = boneData.preQArray[index] = avatar.GetPreRotation(i).ToSystem();
+                Quaternion postQ = boneData.postQArray[index] = avatar.GetPostRotation(i).ToSystem();
                 boneData.preQinvArray[index] = Quaternion.Inverse(preQ);
                 boneData.postQinvArray[index] = Quaternion.Inverse(postQ);
-                boneData.transforms[index] = animator.GetBoneTransform((HumanBodyBones)i);
+                boneData.transforms[index] = animator.GetBoneTransform((UnityEngine.HumanBodyBones)i);
             }
 
             bool hasPacketData = receiverPacketData.TryGetValue(photonId, out ReceiverPacketData packetData);
@@ -162,7 +162,7 @@ namespace AltNetIk
         {
             int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
             int boneCount = 0;
-            bool[] boneList = new bool[HumanTrait.BoneCount];
+            bool[] boneList = new bool[UnityEngine.HumanTrait.BoneCount];
 
             var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
             var parameters = new List<AvatarParameter>();
@@ -188,7 +188,7 @@ namespace AltNetIk
             }
 
             senderPacketData = new PacketData();
-            Animator animator = avatarManager.field_Private_Animator_0;
+            UnityEngine.Animator animator = avatarManager.field_Private_Animator_0;
             bool isSdk2 = avatarManager.prop_VRCAvatarDescriptor_0 == null;
 
             if (animator == null || animator.avatar == null || !animator.avatar.isHuman)
@@ -202,7 +202,7 @@ namespace AltNetIk
                     preQinvArray = new Quaternion[boneCount],
                     postQArray = new Quaternion[boneCount],
                     postQinvArray = new Quaternion[boneCount],
-                    transforms = new Transform[boneCount],
+                    transforms = new UnityEngine.Transform[boneCount],
                     boneCount = boneCount,
                     boneList = boneList,
                     parameters = parameters,
@@ -213,14 +213,14 @@ namespace AltNetIk
             }
 
             var avatar = animator.avatar;
-            foreach (HumanBone humanBone in avatar.humanDescription.human)
+            foreach (UnityEngine.HumanBone humanBone in avatar.humanDescription.human)
             {
                 string boneName = humanBone.humanName;
 
                 if (boneName.EndsWith("Eye"))
                     continue;
 
-                int boneIndex = HumanTrait.BoneName.IndexOf(boneName);
+                int boneIndex = UnityEngine.HumanTrait.BoneName.IndexOf(boneName);
                 if (boneIndex < 0)
                     continue;
 
@@ -231,13 +231,13 @@ namespace AltNetIk
             {
                 // legacy fallback
                 int bodyBoneIndex = -1;
-                for (int i = 0; i < HumanTrait.BoneCount; i++)
+                for (int i = 0; i < UnityEngine.HumanTrait.BoneCount; i++)
                 {
-                    if (i == (int)HumanBodyBones.LeftEye || i == (int)HumanBodyBones.RightEye)
+                    if (i == (int)UnityEngine.HumanBodyBones.LeftEye || i == (int)UnityEngine.HumanBodyBones.RightEye)
                         continue;
 
-                    HumanBodyBones bodyBone = (HumanBodyBones)i;
-                    Transform bone = animator.GetBoneTransform(bodyBone);
+                    UnityEngine.HumanBodyBones bodyBone = (UnityEngine.HumanBodyBones)i;
+                    UnityEngine.Transform bone = animator.GetBoneTransform(bodyBone);
                     if (bone == null)
                         continue;
 
@@ -255,7 +255,7 @@ namespace AltNetIk
                 preQinvArray = new Quaternion[boneCount],
                 postQArray = new Quaternion[boneCount],
                 postQinvArray = new Quaternion[boneCount],
-                transforms = new Transform[boneCount],
+                transforms = new UnityEngine.Transform[boneCount],
                 boneCount = boneCount,
                 boneList = boneList,
                 parameters = parameters,
@@ -264,17 +264,17 @@ namespace AltNetIk
             };
 
             int index = -1;
-            for (int i = 0; i < HumanTrait.BoneCount; i++)
+            for (int i = 0; i < UnityEngine.HumanTrait.BoneCount; i++)
             {
                 if (!boneList[i])
                     continue;
                 index++;
 
-                Quaternion preQ = senderPlayerData.preQArray[index] = avatar.GetPreRotation(i);
-                Quaternion postQ = senderPlayerData.postQArray[index] = avatar.GetPostRotation(i);
+                Quaternion preQ = senderPlayerData.preQArray[index] = avatar.GetPreRotation(i).ToSystem();
+                Quaternion postQ = senderPlayerData.postQArray[index] = avatar.GetPostRotation(i).ToSystem();
                 senderPlayerData.preQinvArray[index] = Quaternion.Inverse(preQ);
                 senderPlayerData.postQinvArray[index] = Quaternion.Inverse(postQ);
-                senderPlayerData.transforms[index] = animator.GetBoneTransform((HumanBodyBones)i);
+                senderPlayerData.transforms[index] = animator.GetBoneTransform((UnityEngine.HumanBodyBones)i);
             }
         }
     }

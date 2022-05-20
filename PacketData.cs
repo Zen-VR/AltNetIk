@@ -1,4 +1,5 @@
 using LiteNetLib.Utils;
+using System.Numerics;
 using System.Runtime.Serialization;
 
 namespace AltNetIk
@@ -11,12 +12,12 @@ namespace AltNetIk
         public short avatarKind { get; set; }
         [IgnoreDataMember]
         public int boneCount => boneRotations.Length;
-        public UnityEngine.Vector3 hipPosition { get; set; }
-        public UnityEngine.Quaternion hipRotation { get; set; }
-        public UnityEngine.Vector3 playerPosition { get; set; }
-        public UnityEngine.Quaternion playerRotation { get; set; }
+        public Vector3 hipPosition { get; set; }
+        public Quaternion hipRotation { get; set; }
+        public Vector3 playerPosition { get; set; }
+        public Quaternion playerRotation { get; set; }
         public bool[] boneList { get; set; }
-        public UnityEngine.Quaternion[] boneRotations { get; set; }
+        public Quaternion[] boneRotations { get; set; }
 
         public void Serialize(NetDataWriter writer)
         {

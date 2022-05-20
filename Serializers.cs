@@ -1,38 +1,39 @@
 ﻿using LiteNetLib.Utils;
+using System.Numerics;
 
 namespace AltNetIk
 {
     internal static class Serializers
     {
-        public static void SerializeQuaternion(NetDataWriter writer, UnityEngine.Quaternion quaternion)
+        public static void SerializeQuaternion(NetDataWriter writer, Quaternion quaternion)
         {
-            writer.Put(quaternion.x);
-            writer.Put(quaternion.y);
-            writer.Put(quaternion.z);
-            writer.Put(quaternion.w);
+            writer.Put(quaternion.X);
+            writer.Put(quaternion.Y);
+            writer.Put(quaternion.Z);
+            writer.Put(quaternion.W);
         }
-        public static UnityEngine.Quaternion DeserializeQuaternion(NetDataReader reader)
+        public static Quaternion DeserializeQuaternion(NetDataReader reader)
         {
             float x = reader.GetFloat();
             float y = reader.GetFloat();
             float z = reader.GetFloat();
             float w = reader.GetFloat();
 
-            return new UnityEngine.Quaternion(x, y, z, w);
+            return new Quaternion(x, y, z, w);
         }
-        public static void SerializeQuaternionArray(NetDataWriter writer, UnityEngine.Quaternion[] quaternions)
+        public static void SerializeQuaternionArray(NetDataWriter writer, Quaternion[] quaternions)
         {
             float[] floats = new float[quaternions.Length * 4];
             for (int i = 0; i < quaternions.Length; i += 4)
             {
-                floats[i + 0] = quaternions[i].x;
-                floats[i + 1] = quaternions[i].y;
-                floats[i + 2] = quaternions[i].z;
-                floats[i + 3] = quaternions[i].w;
+                floats[i + 0] = quaternions[i].X;
+                floats[i + 1] = quaternions[i].Y;
+                floats[i + 2] = quaternions[i].Z;
+                floats[i + 3] = quaternions[i].W;
             }
             writer.PutArray(floats);
         }
-        public static UnityEngine.Quaternion[] DeserializeQuaternionArray(NetDataReader reader)
+        public static Quaternion[] DeserializeQuaternionArray(NetDataReader reader)
         {
             float[] array = reader.GetFloatArray();
 
@@ -41,41 +42,41 @@ namespace AltNetIk
             if (length * 4 != array.Length)
                 throw new System.Exception("Invalid quaternion array length");
 
-            UnityEngine.Quaternion[] quaternions = new UnityEngine.Quaternion[length];
+            Quaternion[] quaternions = new Quaternion[length];
             for (int i = 0; i < length; i += 4)
             {
-                quaternions[i] = new UnityEngine.Quaternion(array[i + 0], array[i + 1], array[i + 2], array[i + 3]);
+                quaternions[i] = new Quaternion(array[i + 0], array[i + 1], array[i + 2], array[i + 3]);
             }
             
             return quaternions;
         }
 
-        public static void SerializeVector3(NetDataWriter writer, UnityEngine.Vector3 vector)
+        public static void SerializeVector3(NetDataWriter writer, Vector3 vector)
         {
-            writer.Put(vector.x);
-            writer.Put(vector.y);
-            writer.Put(vector.z);
+            writer.Put(vector.X);
+            writer.Put(vector.Y);
+            writer.Put(vector.Z);
         }
-        public static UnityEngine.Vector3 DeserializeVector3(NetDataReader reader)
+        public static Vector3 DeserializeVector3(NetDataReader reader)
         {
             float x = reader.GetFloat();
             float y = reader.GetFloat();
             float z = reader.GetFloat();
 
-            return new UnityEngine.Vector3(x, y, z);
+            return new Vector3(x, y, z);
         }
-        public static void SerializeVector3Array(NetDataWriter writer, UnityEngine.Vector3[] vectors)
+        public static void SerializeVector3Array(NetDataWriter writer, Vector3[] vectors)
         {
             float[] floats = new float[vectors.Length * 3];
             for (int i = 0; i < vectors.Length; i += 3)
             {
-                floats[i + 0] = vectors[i].x;
-                floats[i + 1] = vectors[i].y;
-                floats[i + 2] = vectors[i].z;
+                floats[i + 0] = vectors[i].X;
+                floats[i + 1] = vectors[i].Y;
+                floats[i + 2] = vectors[i].Z;
             }
             writer.PutArray(floats);
         }
-        public static UnityEngine.Vector3[] DeserializeVector3Array(NetDataReader reader)
+        public static Vector3[] DeserializeVector3Array(NetDataReader reader)
         {
             float[] array = reader.GetFloatArray();
 
@@ -84,10 +85,10 @@ namespace AltNetIk
             if (length * 3 != array.Length)
                 throw new System.Exception("Invalid vector array length");
 
-            UnityEngine.Vector3[] vectors = new UnityEngine.Vector3[length];
+            Vector3[] vectors = new Vector3[length];
             for (int i = 0; i < length; i += 3)
             {
-                vectors[i] = new UnityEngine.Vector3(array[i + 0], array[i + 1], array[i + 2]);
+                vectors[i] = new Vector3(array[i + 0], array[i + 1], array[i + 2]);
             }
 
             return vectors;
