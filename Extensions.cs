@@ -20,11 +20,13 @@ namespace AltNetIk
                 z = vector.Z
             };
         }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static SysVec3 ToSystem(this UniVec3 vector)
         {
             return new SysVec3(vector.x, vector.y, vector.z);
         }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UniQuat ToUnity(this SysQuat quaternion)
         {
@@ -36,15 +38,16 @@ namespace AltNetIk
                 w = quaternion.W
             };
         }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static SysQuat ToSystem(this UniQuat quaternion)
         {
             return new SysQuat(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
         }
-    
+
         public static void Send(this NetPeer netPeer, NetDataWriter writer)
         {
-            netPeer.Send(writer, writer.Length > netPeer.Mtu ? DeliveryMethod.ReliableOrdered : DeliveryMethod.Unreliable);
+            netPeer.Send(writer, writer.Length > netPeer.GetMaxSinglePacketSize(DeliveryMethod.Sequenced) ? DeliveryMethod.ReliableOrdered : DeliveryMethod.Sequenced);
         }
     }
 }

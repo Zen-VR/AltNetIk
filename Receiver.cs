@@ -142,11 +142,11 @@ namespace AltNetIk
                 {
                     double oldDeltaTime = date - dataBankA.timestamp;
                     long newDeltaTime = dataBankA.timestamp - dataBankB.timestamp;
-                    double deltaTime = GetDeltaTime(ref lastDataBank.deltaTime, (int)newDeltaTime);
-                    newDataBank.deltaTime = lastDataBank.deltaTime;
+                    double deltaTime = GetDeltaTime(ref lastDeltaTime, (int)newDeltaTime);
                     double delta = Math.Round((deltaTime - oldDeltaTime) / deltaTime * 100, 2) / 100;
                     deltaFloat = (float)-delta + 1;
                 }
+                newDataBank.deltaTime = lastDeltaTime;
 
                 // clamp delta
                 if (!enableLerp || !(deltaFloat >= 0f && deltaFloat <= 1.0f))
@@ -213,11 +213,11 @@ namespace AltNetIk
                 return;
 
             bool hasPlayerData = receiverPlayerData.TryGetValue(packet.photonId, out PlayerData playerData);
-            if (!hasPlayerData || playerData.parameters.Count < 18)
+            if (!hasPlayerData || playerData.parameters.Count < 19)
                 return;
 
             var paramCount = packet.paramData.Length / 2;
-            if (paramCount < 18)
+            if (paramCount < 19)
                 return;
 
             var isFallback = playerData.avatarKind == (short)VRCAvatarManager.AvatarKind.Fallback;
@@ -253,11 +253,11 @@ namespace AltNetIk
                 }
 
                 // Fix avatar limb grabber
-                if (byteIndex == 6) // GestureLeft
+                if (i == 2) // GestureLeft
                 {
                     playerData.playerHandGestureController.field_Private_Gesture_0 = (HandGestureController.Gesture)senderParam;
                 }
-                else if (byteIndex == 10) // GestureRight
+                else if (i == 4) // GestureRight
                 {
                     playerData.playerHandGestureController.field_Private_Gesture_2 = (HandGestureController.Gesture)senderParam;
                 }

@@ -315,7 +315,7 @@ namespace AltNetIk
                 deltaTime = deltaInt;
                 return deltaTime;
             }
-            int deltaTimeSmoothing = 5;
+            int deltaTimeSmoothing = 10;
             deltaTime = (deltaInt + deltaTime * deltaTimeSmoothing) / (deltaTimeSmoothing + 1);
             return deltaTime;
         }

@@ -64,7 +64,7 @@ namespace AltNetIk
 
             public void SwapDataBanks(DataBank dataBank)
             {
-                (dataBankA, dataBankB) = (dataBankB, dataBank);
+                (dataBankA, dataBankB) = (dataBank, dataBankA);
             }
         }
 
