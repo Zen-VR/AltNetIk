@@ -12,6 +12,7 @@ TLDR: Remote players look same as local, faster IK and avatar parameter update r
 - When remote players calibrate/reset their avatar will become broken for a few seconds.
 - SDK2 avatars aren't supported.
 - Interpolation can cause single frames with broken player rotation, option to disable interpolation in settings.
+- Chairs and camera indicators are very shaky.
 - If you find any bugs that aren't listed here make an issue [here](https://github.com/Zen-VR/AltNetIk/issues) or send me a DM.
 
 
@@ -48,6 +49,7 @@ https://user-images.githubusercontent.com/104001796/164469569-9a0938ca-602c-4798
 
 #### This project wouldn't have been possible without the help of these people
 [Zettai](https://github.com/ZettaiVR),
+[OptoCloud](https://github.com/OptoCloud),
 [Requi](https://github.com/RequiDev),
 [DDAkebono](https://github.com/ddakebono),
 [knah](https://github.com/knah),

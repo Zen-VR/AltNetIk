@@ -19,7 +19,7 @@ namespace AltNetIk
         public const string Name = "AltNetIk";
         public const string Author = "Zen.";
         public const string Company = "Lava Gang";
-        public const string Version = "1.3.0";
+        public const string Version = "1.4.0";
         public const string DownloadLink = "";
     }
 }
