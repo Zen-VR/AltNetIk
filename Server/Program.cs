@@ -6,7 +6,6 @@ namespace AltNetIk
 {
     public static class Server
     {
-        public static bool consoleLogging = true;
         public const string version = "1.4.0";
         public static readonly short versionNum = short.Parse(version[..version.LastIndexOf('.')].Replace(".", "")); // 1.3.0 -> 13
 
@@ -33,6 +32,7 @@ namespace AltNetIk
         public static readonly NetPacketProcessor netPacketProcessor = new NetPacketProcessor();
         public static readonly StreamWriter logFile = File.AppendText("EventLog.log");
         private static bool _running;
+        private static bool _consoleLogging = true;
         private static readonly Stopwatch _stopWatch = new Stopwatch();
 
         private static void Main(string[] args)
@@ -181,8 +181,8 @@ namespace AltNetIk
                         break;
 
                     case "logging":
-                        consoleLogging = !consoleLogging;
-                        Console.WriteLine($"Console logging set to: {consoleLogging}");
+                        _consoleLogging = !_consoleLogging;
+                        Console.WriteLine($"Console logging set to: {_consoleLogging}");
                         break;
 
                     case string x when x.StartsWith("msgAll "):
@@ -390,7 +390,7 @@ namespace AltNetIk
         public static void LogEntry(string msg)
         {
             string line = $"[{GetDateTime()}] {msg}";
-            if (consoleLogging)
+            if (_consoleLogging)
                 Console.WriteLine(line);
             logFile.WriteLine(line);
             logFile.Flush();

@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -20,6 +20,7 @@ namespace AltNetIk
             public GameObject namePlate;
             public TextMeshProUGUI namePlateText;
             public Transform namePlateStatusLine;
+            public Transform namePlateAvatarProgress;
         }
 
         // Large structure, must be class to avoid deepcopies

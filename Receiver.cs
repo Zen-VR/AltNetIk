@@ -299,25 +299,7 @@ namespace AltNetIk
                 if (packetData.lastTimeReceived > 0 && date - packetData.lastTimeReceived >= 3000)
                 {
                     //player connection died
-                    receiverPacketData.TryRemove(packetData.photonId, out _);
-                    bool hasReceiverPlayerData = receiverPlayerData.TryGetValue(packetData.photonId, out PlayerData playerData);
-                    if (playerData.playerTransform == null)
-                        continue;
-                    if (hasReceiverPlayerData)
-                    {
-                        playerData.active = false;
-                        playerData.playerPoseRecorder.enabled = true;
-                        playerData.playerHandGestureController.enabled = true;
-                        playerData.playerAnimControlNetSerializer.enabled = true;
-                        receiverPlayerData.AddOrUpdate(packetData.photonId, playerData, (k, v) => playerData);
-                    }
-                    bool hasPlayerNamePlate = playerNamePlates.TryGetValue(packetData.photonId, out NamePlateInfo namePlateInfo);
-                    if (hasPlayerNamePlate)
-                    {
-                        namePlateInfo.namePlate.SetActive(false);
-                        namePlateInfo.namePlateStatusLine.localPosition = new UnityEngine.Vector3 { x = 0.0066f, y = -58f, z = 0f };
-                    }
-                    RemoveFreeze(packetData.photonId);
+                    DisableReceiver(packetData.photonId);
                 }
             }
         }
@@ -401,6 +383,7 @@ namespace AltNetIk
             {
                 namePlateInfo.namePlate.SetActive(false);
                 namePlateInfo.namePlateStatusLine.localPosition = new UnityEngine.Vector3 { x = 0.0066f, y = -58f, z = 0f };
+                namePlateInfo.namePlateAvatarProgress.localPosition = new UnityEngine.Vector3 { x = 0f, y = -15f, z = 0f };
             }
             RemoveFreeze(photonId);
         }
