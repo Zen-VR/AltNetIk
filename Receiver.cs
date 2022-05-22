@@ -111,10 +111,10 @@ namespace AltNetIk
 
                 int lastDeltaTime = 0;
                 bool hasLastDataBank = receiverLastPacket.TryGetValue(photonId, out DataBank lastDataBank);
-                
+
                 if (hasLastDataBank)
                     lastDeltaTime = lastDataBank.deltaTime;
-                
+
                 var newDataBank = new DataBank
                 {
                     boneRotations = new Quaternion[boneData.boneCount]
@@ -126,6 +126,7 @@ namespace AltNetIk
                     boneData.playerPoseRecorder.enabled = false;
                     boneData.playerHandGestureController.enabled = false;
                     boneData.playerAnimControlNetSerializer.enabled = false;
+                    boneData.playerVRCVrIkController.enabled = false;
                     receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
                 }
 
@@ -157,12 +158,12 @@ namespace AltNetIk
                 {
                     if (!boneData.boneList[i])
                         continue;
-                    
+
                     index++;
 
                     if (packetData.boneCount <= index || boneData.boneCount <= index)
                         break;
-                    
+
                     if (!packetData.boneList[i] || !boneData.transforms[index] || i == 0)
                         continue;
 
@@ -371,11 +372,12 @@ namespace AltNetIk
             {
                 if (playerData.playerTransform == null)
                     return;
-                
+
                 playerData.active = false;
                 playerData.playerPoseRecorder.enabled = true;
                 playerData.playerHandGestureController.enabled = true;
                 playerData.playerAnimControlNetSerializer.enabled = true;
+                playerData.playerVRCVrIkController.enabled = true;
                 receiverPlayerData.AddOrUpdate(photonId, playerData, (k, v) => playerData);
             }
             bool hasPlayerNamePlate = playerNamePlates.TryGetValue(photonId, out NamePlateInfo namePlateInfo);

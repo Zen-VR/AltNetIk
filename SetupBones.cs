@@ -62,7 +62,6 @@ namespace AltNetIk
                     playerPoseRecorder = animationController.GetComponent<PoseRecorder>(),
                     playerHandGestureController = animationController.GetComponent<HandGestureController>(),
                     playerAnimControlNetSerializer = animationController.GetComponentInChildren<FlatBufferNetworkSerializer>(),
-                    playerIkController = animationController.GetComponentInChildren<IkController>(),
                     playerVRCVrIkController = animationController.GetComponentInChildren<VRCVrIkController>(),
                     preQArray = new Quaternion[boneCount],
                     preQinvArray = new Quaternion[boneCount],
@@ -117,7 +116,6 @@ namespace AltNetIk
                 playerPoseRecorder = animationController.GetComponent<PoseRecorder>(),
                 playerHandGestureController = animationController.GetComponent<HandGestureController>(),
                 playerAnimControlNetSerializer = animationController.GetComponentInChildren<FlatBufferNetworkSerializer>(),
-                playerIkController = animationController.GetComponentInChildren<IkController>(),
                 playerVRCVrIkController = animationController.GetComponentInChildren<VRCVrIkController>(),
                 preQArray = new Quaternion[boneCount],
                 preQinvArray = new Quaternion[boneCount],
@@ -153,6 +151,7 @@ namespace AltNetIk
                 boneData.playerPoseRecorder.enabled = false;
                 boneData.playerHandGestureController.enabled = false;
                 boneData.playerAnimControlNetSerializer.enabled = false;
+                boneData.playerVRCVrIkController.enabled = false;
             }
 
             receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);

@@ -1,4 +1,4 @@
-using MelonLoader;
+﻿using MelonLoader;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -33,7 +33,6 @@ namespace AltNetIk
             public PoseRecorder playerPoseRecorder;
             public HandGestureController playerHandGestureController;
             public FlatBufferNetworkSerializer playerAnimControlNetSerializer;
-            public IkController playerIkController;
             public VRCVrIkController playerVRCVrIkController;
             public VRCAvatarManager playerAvatarManager;
             public Quaternion[] preQArray;
