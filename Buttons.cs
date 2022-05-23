@@ -41,7 +41,6 @@ namespace AltNetIk
                 AltNetIk.Instance.ToggleSend, ResourceManager.GetSprite("altnetik.Up"));
             buttons["ToggleReceive"] = menu.AddButton("Receive\n" + AltNetIk.color("#00ff00", "Enabled"), "Toggle receiving data from server.",
                 AltNetIk.Instance.ToggleReceive, ResourceManager.GetSprite("altnetik.Down"));
-
             buttons["Ping"] = menu.AddButton($"Ping: {AltNetIk.serverPeer?.RoundTripTime}", "Current ping to AltNetIk server.", () => { AltNetIk.Logger.Msg($"Ping{(char)7}"); }, ResourceManager.GetSprite("altnetik.ping"));
 
             toggles["EnableLerp"] = menu.AddToggle("Receiver Interpolation", "Toggle receiver interpolation.", state =>
@@ -54,6 +53,11 @@ namespace AltNetIk
                 AltNetIk.namePlates = state;
                 MelonPreferences.SetEntryValue(AltNetIk.ModID, "NamePlates", state);
             }, AltNetIk.namePlates);
+            toggles["AutoConnect"] = menu.AddToggle("Auto Connect", "Automatically connect to the AltNetIK server", (state) =>
+            {
+                AltNetIk.autoConnect = state;
+                MelonPreferences.SetEntryValue(AltNetIk.ModID, "ServerAutoConnect", state);
+            }, AltNetIk.autoConnect);
         }
 
         public static void UpdatePing()

@@ -29,7 +29,7 @@ namespace AltNetIk
 
         private static void OnAvatarChange(VRCAvatarManager __instance)
         {
-            AltNetIk.Instance.OnAvatarInit(__instance, __instance.prop_GameObject_0);
+            AltNetIk.Instance.OnAvatarInit(__instance);
         }
 
         private static void OnPlayerAwake(VRCPlayer __instance)
@@ -44,7 +44,7 @@ namespace AltNetIk
             if (manager == null || apiAvatar == null || avatar == null)
                 return;
 
-            AltNetIk.Instance.OnAvatarChange(manager, apiAvatar, avatar);
+            AltNetIk.Instance.OnAvatarChange(manager);
         }
 
         private static void OnInstanceChange(ApiWorld __0, ApiWorldInstance __1)

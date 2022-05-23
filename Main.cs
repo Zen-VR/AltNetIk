@@ -28,38 +28,38 @@ namespace AltNetIk
         public static bool IsReceiving = true;
         public static bool IsFrozen = false;
 
-        public static EventBasedNetListener listener;
-        public static NetManager client;
+        private EventBasedNetListener listener;
+        private NetManager client;
         public static NetPeer serverPeer;
-        private static readonly NetPacketProcessor netPacketProcessor = new NetPacketProcessor();
+        private readonly NetPacketProcessor netPacketProcessor = new NetPacketProcessor();
 
         private static ConcurrentDictionary<int, PlayerData> receiverPlayerData = new ConcurrentDictionary<int, PlayerData>();
         private static Dictionary<int, GameObject> frozenPlayers = new Dictionary<int, GameObject>();
         private static Dictionary<int, NamePlateInfo> playerNamePlates = new Dictionary<int, NamePlateInfo>();
 
-        private static string currentInstanceIdHash;
-        private static int currentPhotonId = 0;
+        private string currentInstanceIdHash;
+        private int currentPhotonId = 0;
 
         private static ConcurrentDictionary<int, ReceiverPacketData> receiverPacketData = new ConcurrentDictionary<int, ReceiverPacketData>();
-        private static ConcurrentDictionary<int, DataBank> receiverLastPacket = new ConcurrentDictionary<int, DataBank>();
-        private static PlayerData senderPlayerData = new PlayerData();
+        private ConcurrentDictionary<int, DataBank> receiverLastPacket = new ConcurrentDictionary<int, DataBank>();
+        private PlayerData senderPlayerData = new PlayerData();
 
-        private static System.Numerics.Quaternion[] netRotations;
-        private static PacketData senderPacketData = new PacketData();
-        private static ParamData senderParamData = new ParamData();
+        private System.Numerics.Quaternion[] netRotations;
+        private PacketData senderPacketData = new PacketData();
+        private ParamData senderParamData = new ParamData();
 
         public static string color(string c, string s)
         { return $"<color={c}>{s}</color>"; } // stolen from MintLily
 
-        private static bool autoConnect;
-        private static bool _streamSafe;
+        public static bool autoConnect;
+        private bool _streamSafe;
         public static bool enableLerp;
         public static bool namePlates;
-        private static string serverIP;
-        private static int serverPort;
-        private static Int64 lastUpdate;
-        private static Int64 ReconnectTimer;
-        private static Int64 ReconnectLastAttempt;
+        private string serverIP;
+        private int serverPort;
+        private Int64 lastUpdate;
+        private Int64 ReconnectTimer;
+        private Int64 ReconnectLastAttempt;
 
         internal delegate void BoolPropertySetterDelegate(IntPtr @this, bool value);
 
@@ -176,6 +176,7 @@ namespace AltNetIk
             enableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "EnableLerp");
             Buttons.UpdateToggleState("NameplateStats", namePlates);
             Buttons.UpdateToggleState("EnableLerp", enableLerp);
+            Buttons.UpdateToggleState("AutoConnect", autoConnect);
             var newServerIP = MelonPreferences.GetEntryValue<string>(ModID, "ServerIP");
             var newServerPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
             if (newServerIP != serverIP || newServerPort != serverPort)
@@ -273,7 +274,7 @@ namespace AltNetIk
             }
         }
 
-        public void OnAvatarChange(VRCAvatarManager avatarManager, ApiAvatar __1, GameObject gameObject)
+        public void OnAvatarChange(VRCAvatarManager avatarManager)
         {
             VRCPlayer player = avatarManager.field_Private_VRCPlayer_0;
             if (player == null)
@@ -287,7 +288,7 @@ namespace AltNetIk
                 SetReceiverBones(player, avatarManager, avatarKind);
         }
 
-        public void OnAvatarInit(VRCAvatarManager avatarManager, GameObject __1)
+        public void OnAvatarInit(VRCAvatarManager avatarManager)
         {
             VRCPlayer player = avatarManager.field_Private_VRCPlayer_0;
             if (player == null) return;
