@@ -122,7 +122,7 @@ namespace AltNetIk
             MelonPreferences.CreateEntry(ModID, "AutoConnect", true, "Auto connect to server on startup");
             MelonPreferences.CreateEntry(ModID, "NamePlates", true, "Nameplate stats");
             MelonPreferences.CreateEntry(ModID, "EnableLerp", true, "Receiver interpolation");
-            autoConnect = MelonPreferences.GetEntryValue<bool>(ModID, "ServerAutoConnect");
+            autoConnect = MelonPreferences.GetEntryValue<bool>(ModID, "AutoConnect");
             namePlates = MelonPreferences.GetEntryValue<bool>(ModID, "NamePlates");
             enableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "EnableLerp");
             serverIP = "188.40.191.108";
