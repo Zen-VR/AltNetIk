@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\PacketData.cs" Link="PacketData.cs" />
+    <Compile Include="..\Serializers.cs" Link="Serializers.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="LiteNetLib">
       <HintPath>LiteNetLib.dll</HintPath>
     </Reference>

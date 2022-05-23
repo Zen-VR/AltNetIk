@@ -1,147 +1,76 @@
-﻿using System;
 using LiteNetLib.Utils;
+using System.Numerics;
+using System.Runtime.Serialization;
 
 namespace AltNetIk
 {
     public class PacketData : INetSerializable
     {
-        public struct Vector3 : INetSerializable
-        {
-            public float x;
-            public float y;
-            public float z;
-            public Vector3(UnityEngine.Vector3 vector3)
-            {
-                x = vector3.x;
-                y = vector3.y;
-                z = vector3.z;
-            }
-            public static implicit operator Vector3(UnityEngine.Vector3 a) => new Vector3(a);
-            public static implicit operator UnityEngine.Vector3(Vector3 a) => new UnityEngine.Vector3(a.x, a.y, a.z);
-            public void Serialize(NetDataWriter writer)
-            {
-                writer.Put(x);
-                writer.Put(y);
-                writer.Put(z);
-            }
-            public void Deserialize(NetDataReader reader)
-            {
-                x = reader.GetFloat();
-                y = reader.GetFloat();
-                z = reader.GetFloat();
-            }
-        }
-        public struct Quaternion : INetSerializable
-        {
-            public float x;
-            public float y;
-            public float z;
-            public float w;
-            public Quaternion(UnityEngine.Quaternion quaternion)
-            {
-                x = quaternion.x;
-                y = quaternion.y;
-                z = quaternion.z;
-                w = quaternion.w;
-            }
-            public static implicit operator Quaternion(UnityEngine.Quaternion a) => new Quaternion(a);
-            public static implicit operator UnityEngine.Quaternion(Quaternion a) => new UnityEngine.Quaternion(a.x, a.y, a.z, a.w);
-
-            public void Serialize(NetDataWriter writer)
-            {
-                writer.Put(x);
-                writer.Put(y);
-                writer.Put(z);
-                writer.Put(w);
-            }
-            public void Deserialize(NetDataReader reader)
-            {
-                x = reader.GetFloat();
-                y = reader.GetFloat();
-                z = reader.GetFloat();
-                w = reader.GetFloat();
-            }
-        }
-
         public int photonId { get; set; }
-        public bool loading { get; set; }
+        public int ping { get; set; }
         public bool frozen { get; set; }
-        public byte boneCount { get; set; }
+        public short avatarKind { get; set; }
+        [IgnoreDataMember]
+        public int boneCount => boneRotations.Length;
         public Vector3 hipPosition { get; set; }
+        public Quaternion hipRotation { get; set; }
         public Vector3 playerPosition { get; set; }
         public Quaternion playerRotation { get; set; }
         public bool[] boneList { get; set; }
         public Quaternion[] boneRotations { get; set; }
-    
 
         public void Serialize(NetDataWriter writer)
         {
             writer.Put(photonId);
-            writer.Put(loading);
+            writer.Put(ping);
             writer.Put(frozen);
-            writer.Put(boneCount);
+            writer.Put(avatarKind);
 
-            writer.Put(hipPosition);
-            writer.Put(playerPosition);
-            writer.Put(playerRotation);
-
-            writer.PutArray(boneList);
-
-            foreach (Quaternion boneRotation in boneRotations)
-            {
-                writer.Put(boneRotation);
-            }
+            Serializers.SerializeVector3(writer, hipPosition);
+            Serializers.SerializeQuaternion(writer, hipRotation);
+            Serializers.SerializeVector3(writer, playerPosition);
+            Serializers.SerializeQuaternion(writer, playerRotation);
+            Serializers.SerializePackedBoolArray(writer, boneList);
+            Serializers.SerializeQuaternionArray(writer, boneRotations);
         }
 
         public void Deserialize(NetDataReader reader)
         {
             photonId = reader.GetInt();
-            loading = reader.GetBool();
+            ping = reader.GetInt();
             frozen = reader.GetBool();
-            boneCount = reader.GetByte();
+            avatarKind = reader.GetShort();
 
-            hipPosition = reader.Get<Vector3>();
-            playerPosition = reader.Get<Vector3>();
-            playerRotation = reader.Get<Quaternion>();
-
-            boneList = reader.GetBoolArray();
-
-            boneRotations = new Quaternion[boneCount];
-            for (int i = 0; i < boneCount; i++)
-            {
-                boneRotations[i] = reader.Get<Quaternion>();
-            }
+            hipPosition = Serializers.DeserializeVector3(reader);
+            hipRotation = Serializers.DeserializeQuaternion(reader);
+            playerPosition = Serializers.DeserializeVector3(reader);
+            playerRotation = Serializers.DeserializeQuaternion(reader);
+            boneList = Serializers.DeserializePackedBoolArray(reader);
+            boneRotations = Serializers.DeserializeQuaternionArray(reader);
         }
     }
 
     public class ParamData : INetSerializable
     {
         public int photonId { get; set; }
-    
-        public string[] paramName { get; set; }
-        public short[] paramType { get; set; }
-        public float[] paramValue { get; set; }
+        public byte[] paramData { get; set; }
 
         public void Serialize(NetDataWriter writer)
         {
             writer.Put(photonId);
-
-            writer.PutArray(paramName);
-            writer.PutArray(paramType);
-            writer.PutArray(paramValue);
+            writer.PutBytesWithLength(paramData);
         }
 
         public void Deserialize(NetDataReader reader)
         {
             photonId = reader.GetInt();
-
-            paramName = reader.GetStringArray();
-            paramType = reader.GetShortArray();
-            paramValue = reader.GetFloatArray();
+            paramData = reader.GetBytesWithLength();
         }
     }
+
     public class EventData : INetSerializable
     {
+        public short version { get; set; }
         public string lobbyHash { get; set; }
         public int photonId { get; set; }
         public string eventName { get; set; }
@@ -149,15 +78,18 @@ namespace AltNetIk
 
         public void Serialize(NetDataWriter writer)
         {
+            writer.Put(version);
             writer.Put(lobbyHash);
             writer.Put(photonId);
             writer.Put(eventName);
             writer.Put(data);
         }
+
         public void Deserialize(NetDataReader reader)
         {
+            version = reader.GetShort();
             lobbyHash = reader.GetString();
-            photonId = reader.GetInt();
+            photonId = reader.GetShort();
             eventName = reader.GetString();
             data = reader.GetString();
         }

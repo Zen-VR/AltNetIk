@@ -5,6 +5,10 @@ VisualStudioVersion = 17.0.32126.317
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltNetIk", "AltNetIk.csproj", "{AC76838E-BFC0-4583-9821-28E4060E6C59}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReMod.Core", "ReMod.Core\ReMod.Core.csproj", "{C87FE758-ACB9-4FA2-AF6F-10AA9AA0023C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltNetIkServer", "Server\AltNetIkServer.csproj", "{DC730F11-0E71-47A6-B5D5-DD141942CA57}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{AC76838E-BFC0-4583-9821-28E4060E6C59}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AC76838E-BFC0-4583-9821-28E4060E6C59}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AC76838E-BFC0-4583-9821-28E4060E6C59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C87FE758-ACB9-4FA2-AF6F-10AA9AA0023C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C87FE758-ACB9-4FA2-AF6F-10AA9AA0023C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C87FE758-ACB9-4FA2-AF6F-10AA9AA0023C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C87FE758-ACB9-4FA2-AF6F-10AA9AA0023C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC730F11-0E71-47A6-B5D5-DD141942CA57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC730F11-0E71-47A6-B5D5-DD141942CA57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC730F11-0E71-47A6-B5D5-DD141942CA57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC730F11-0E71-47A6-B5D5-DD141942CA57}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
