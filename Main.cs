@@ -175,8 +175,7 @@ namespace AltNetIk
                 MelonPreferences.SetEntryValue(ModID, "AutoConnect", value);
             }, autoConnect);
 
-            buttons["Ping"] = menu.AddButton("Ping\n" + serverPeer?.RoundTripTime, "Current ping to AltNetIk server.", () => { });
-            buttons["Ping"].Interactable = false;
+            buttons["Ping"] = menu.AddButton($"Ping: {serverPeer?.RoundTripTime}", "Current ping to AltNetIk server.", () => { Logger.Msg($"Ping{(char)7}");}, ResourceManager.GetSprite("altnetik.ping"));
 
             toggles["EnableLerp"] = menu.AddToggle("Receiver Interpolation", "Toggle receiver interpolation.", state =>
             {
@@ -360,7 +359,7 @@ namespace AltNetIk
             int ping = 0;
             if (serverPeer != null)
                 ping = serverPeer.RoundTripTime;
-            UpdateButtonText("Ping", "Ping\n" + ping);
+            UpdateButtonText("Ping", $"Ping: {ping}");
         }
 
         private void UpdateButtonText(string buttonName, string text)
