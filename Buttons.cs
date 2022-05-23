@@ -42,8 +42,7 @@ namespace AltNetIk
             buttons["ToggleReceive"] = menu.AddButton("Receive\n" + AltNetIk.color("#00ff00", "Enabled"), "Toggle receiving data from server.",
                 AltNetIk.Instance.ToggleReceive, ResourceManager.GetSprite("altnetik.Down"));
 
-            buttons["Ping"] = menu.AddButton("Ping\n" + AltNetIk.serverPeer?.RoundTripTime, "Current ping to AltNetIk server.", () => { });
-            buttons["Ping"].Interactable = false;
+            buttons["Ping"] = menu.AddButton($"Ping: {AltNetIk.serverPeer?.RoundTripTime}", "Current ping to AltNetIk server.", () => { AltNetIk.Logger.Msg($"Ping{(char)7}"); }, ResourceManager.GetSprite("altnetik.ping"));
 
             toggles["EnableLerp"] = menu.AddToggle("Receiver Interpolation", "Toggle receiver interpolation.", state =>
             {
@@ -62,7 +61,7 @@ namespace AltNetIk
             int ping = 0;
             if (AltNetIk.serverPeer != null)
                 ping = AltNetIk.serverPeer.RoundTripTime;
-            UpdateButtonText("Ping", "Ping\n" + ping);
+            UpdateButtonText("Ping", "Ping: " + ping);
         }
 
         public static void UpdateButtonText(string buttonName, string text)

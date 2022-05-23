@@ -158,6 +158,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ILMergeOrder.txt" />
+    <EmbeddedResource Include="Resources\ping.png" />
     <EmbeddedResource Include="Resources\Down.png" />
     <EmbeddedResource Include="Resources\Up.png" />
     <EmbeddedResource Include="Resources\Logo.png" />
