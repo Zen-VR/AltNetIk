@@ -10,6 +10,7 @@ using Component = UnityEngine.Component;
 using GameObject = UnityEngine.GameObject;
 using Object = UnityEngine.Object;
 using Transform = UnityEngine.Transform;
+using ReMod.Core.Notification;
 
 namespace AltNetIk
 {
@@ -283,10 +284,7 @@ namespace AltNetIk
                     break;
 
                 case "Message":
-                    VRCUiManager.prop_VRCUiManager_0.field_Private_Single_0 = 0f;
-                    VRCUiManager.prop_VRCUiManager_0.field_Private_Single_1 = 0f;
-                    VRCUiManager.prop_VRCUiManager_0.field_Private_Single_2 = 0f;
-                    VRCUiManager.prop_VRCUiManager_0.field_Private_List_1_String_0.Add($"[AltNetIk]: {packet.data}");
+                    NotificationSystem.EnqueueNotification("AltNetIk", packet.data);
                     Logger.Warning($"Server message: {packet.data}");
                     break;
             }

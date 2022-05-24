@@ -1,5 +1,6 @@
 using LiteNetLib;
 using MelonLoader;
+using ReMod.Core.Notification;
 using System;
 using System.Collections;
 using ReMod.Core;
@@ -12,7 +13,7 @@ namespace AltNetIk
         {
             if (String.IsNullOrEmpty(serverIP))
                 yield break;
-            
+
             try
             {
                 listener = new EventBasedNetListener();
@@ -57,16 +58,18 @@ namespace AltNetIk
             {
                 ReconnectLastAttempt = 0; // disable auto reconnect
             }
+            string message;
             if (disconnectInfo.AdditionalData != null && disconnectInfo.AdditionalData.RawDataSize > 0)
             {
                 NetPacketReader reader = disconnectInfo.AdditionalData;
-                string message = reader.GetString();
-                Logger.Error($"Server Disconnected: {disconnectInfo.Reason} ({message})");
+                message = $"Server Disconnected: {disconnectInfo.Reason} ({reader.GetString()})";
             }
             else
             {
-                Logger.Msg(ConsoleColor.Red, "Disconnected from server: " + disconnectInfo.Reason);
+                message = $"Server Disconnected: {disconnectInfo.Reason}";
             }
+            Logger.Msg(ConsoleColor.Red, message);
+            NotificationSystem.EnqueueNotification("AltNetIk", message);
 
             DisconnectSilent();
         }
@@ -109,6 +112,7 @@ namespace AltNetIk
             DisableReceivers();
             UpdateAllButtons();
         }
+
         private void Disconnect()
         {
             SendDisconnect();
@@ -118,7 +122,8 @@ namespace AltNetIk
 
             DisconnectSilent();
 
-            if (wasConnected) {
+            if (wasConnected)
+            {
                 Logger.Msg("Disconnected");
             }
         }
