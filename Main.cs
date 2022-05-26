@@ -20,6 +20,7 @@ using VRC;
 using VRC.Core;
 using VRC.Playables;
 using Delegate = Il2CppSystem.Delegate;
+using ReMod.Core.Notification;
 
 namespace AltNetIk
 {
@@ -168,14 +169,11 @@ namespace AltNetIk
                 Instance.ToggleSend, ResourceManager.GetSprite("altnetik.Up"));
             buttons["ToggleReceive"] = menu.AddButton("Receive\n" + StringToColor("#00ff00", "Enabled"), "Toggle receiving data from server.",
                 Instance.ToggleReceive, ResourceManager.GetSprite("altnetik.Down"));
-
-            toggles["AutoConnect"] = menu.AddToggle("Auto Connect", "Automatically connect to the AltNetIK server", (value) =>
+            buttons["Ping"] = menu.AddButton($"Ping: {serverPeer?.RoundTripTime}", "Current ping to AltNetIk server.", () =>
             {
-                autoConnect = value;
-                MelonPreferences.SetEntryValue(ModID, "AutoConnect", value);
-            }, autoConnect);
-
-            buttons["Ping"] = menu.AddButton($"Ping: {serverPeer?.RoundTripTime}", "Current ping to AltNetIk server.", () => { Logger.Msg($"Ping{(char)7}");}, ResourceManager.GetSprite("altnetik.ping"));
+                Logger.Msg($"Ping{(char)7}");
+                NotificationSystem.EnqueueNotification("AltNetIk", "Ping", 1f);
+            }, ResourceManager.GetSprite("altnetik.ping"));
 
             toggles["EnableLerp"] = menu.AddToggle("Receiver Interpolation", "Toggle receiver interpolation.", state =>
             {
@@ -187,6 +185,11 @@ namespace AltNetIk
                 namePlates = state;
                 MelonPreferences.SetEntryValue(ModID, "NamePlates", state);
             }, namePlates);
+            toggles["AutoConnect"] = menu.AddToggle("Auto Connect", "Automatically connect to the AltNetIK server", (state) =>
+            {
+                autoConnect = state;
+                MelonPreferences.SetEntryValue(ModID, "AutoConnect", state);
+            }, autoConnect);
 
             if (autoConnect)
                 MelonCoroutines.Start(Connect());

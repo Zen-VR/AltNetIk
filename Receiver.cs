@@ -243,15 +243,15 @@ namespace AltNetIk
                 switch (type)
                 {
                     case AvatarParameter.ParameterType.Bool:
-                        _boolPropertySetterDelegate(parameter.Pointer, senderParam != 0);
+                        BoolPropertySetter(parameter.Pointer, senderParam != 0);
                         break;
 
                     case AvatarParameter.ParameterType.Int:
-                        _intPropertySetterDelegate(parameter.Pointer, senderParam);
+                        IntPropertySetter(parameter.Pointer, senderParam);
                         break;
 
                     case AvatarParameter.ParameterType.Float:
-                        _floatPropertySetterDelegate(parameter.Pointer, (senderParam / 127f) - 1f);
+                        FloatPropertySetter(parameter.Pointer, (senderParam / 127f) - 1f);
                         break;
                 }
 
