@@ -126,7 +126,6 @@ namespace AltNetIk
                     boneData.active = true;
                     boneData.playerPoseRecorder.enabled = false;
                     boneData.playerHandGestureController.enabled = false;
-                    boneData.playerAnimControlNetSerializer.enabled = false;
                     boneData.playerVRCVrIkController.enabled = false;
                     receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
                 }
@@ -374,7 +373,6 @@ namespace AltNetIk
                 playerData.active = false;
                 playerData.playerPoseRecorder.enabled = true;
                 playerData.playerHandGestureController.enabled = true;
-                playerData.playerAnimControlNetSerializer.enabled = true;
                 playerData.playerVRCVrIkController.enabled = true;
                 receiverPlayerData.AddOrUpdate(photonId, playerData, (k, v) => playerData);
             }

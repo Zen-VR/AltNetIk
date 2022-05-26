@@ -61,7 +61,6 @@ namespace AltNetIk
                     playerTransform = player.transform,
                     playerPoseRecorder = animationController.GetComponent<PoseRecorder>(),
                     playerHandGestureController = animationController.GetComponent<HandGestureController>(),
-                    playerAnimControlNetSerializer = animationController.GetComponentInChildren<FlatBufferNetworkSerializer>(),
                     playerVRCVrIkController = animationController.GetComponentInChildren<VRCVrIkController>(),
                     preQArray = new Quaternion[boneCount],
                     preQinvArray = new Quaternion[boneCount],
@@ -115,7 +114,6 @@ namespace AltNetIk
                 playerTransform = player.transform,
                 playerPoseRecorder = animationController.GetComponent<PoseRecorder>(),
                 playerHandGestureController = animationController.GetComponent<HandGestureController>(),
-                playerAnimControlNetSerializer = animationController.GetComponentInChildren<FlatBufferNetworkSerializer>(),
                 playerVRCVrIkController = animationController.GetComponentInChildren<VRCVrIkController>(),
                 preQArray = new Quaternion[boneCount],
                 preQinvArray = new Quaternion[boneCount],
@@ -150,7 +148,6 @@ namespace AltNetIk
                 boneData.active = true;
                 boneData.playerPoseRecorder.enabled = false;
                 boneData.playerHandGestureController.enabled = false;
-                boneData.playerAnimControlNetSerializer.enabled = false;
                 boneData.playerVRCVrIkController.enabled = false;
             }
 
