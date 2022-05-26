@@ -1,5 +1,6 @@
 ﻿using MelonLoader;
 using ReMod.Core.Managers;
+using ReMod.Core.Notification;
 using ReMod.Core.UI.QuickMenu;
 using System;
 using System.Collections.Generic;
@@ -41,7 +42,11 @@ namespace AltNetIk
                 AltNetIk.Instance.ToggleSend, ResourceManager.GetSprite("altnetik.Up"));
             buttons["ToggleReceive"] = menu.AddButton("Receive\n" + AltNetIk.color("#00ff00", "Enabled"), "Toggle receiving data from server.",
                 AltNetIk.Instance.ToggleReceive, ResourceManager.GetSprite("altnetik.Down"));
-            buttons["Ping"] = menu.AddButton($"Ping: {AltNetIk.serverPeer?.RoundTripTime}", "Current ping to AltNetIk server.", () => { AltNetIk.Logger.Msg($"Ping{(char)7}"); }, ResourceManager.GetSprite("altnetik.ping"));
+            buttons["Ping"] = menu.AddButton($"Ping: {AltNetIk.serverPeer?.RoundTripTime}", "Current ping to AltNetIk server.", () =>
+            {
+                AltNetIk.Logger.Msg($"Ping{(char)7}");
+                NotificationSystem.EnqueueNotification("AltNetIk", "Ping", 1f);
+            }, ResourceManager.GetSprite("altnetik.ping"));
 
             toggles["EnableLerp"] = menu.AddToggle("Receiver Interpolation", "Toggle receiver interpolation.", state =>
             {
