@@ -33,7 +33,6 @@ namespace AltNetIk
             public Transform playerTransform;
             public PoseRecorder playerPoseRecorder;
             public HandGestureController playerHandGestureController;
-            public FlatBufferNetworkSerializer playerAnimControlNetSerializer;
             public VRCVrIkController playerVRCVrIkController;
             public VRCAvatarManager playerAvatarManager;
             public Quaternion[] preQArray;
