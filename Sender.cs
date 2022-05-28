@@ -84,7 +84,7 @@ namespace AltNetIk
                         break;
 
                     case AvatarParameter.ParameterType.Float:
-                        senderParamData.paramData[byteIndex++] = (byte)((parameter.field_Private_Single_0 + 1f) * 127f);
+                        senderParamData.paramData[byteIndex++] = Serializers.SerializeFloat(parameter.field_Private_Single_0);
                         break;
                 }
             }
