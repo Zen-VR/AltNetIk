@@ -42,7 +42,7 @@ namespace AltNetIk
 
         private static ConcurrentDictionary<int, ReceiverPacketData> receiverPacketData = new ConcurrentDictionary<int, ReceiverPacketData>();
         private ConcurrentDictionary<int, DataBank> receiverLastPacket = new ConcurrentDictionary<int, DataBank>();
-        private PlayerData senderPlayerData = new PlayerData();
+        public PlayerData senderPlayerData = new PlayerData();
 
         private System.Numerics.Quaternion[] netRotations;
         private PacketData senderPacketData = new PacketData();

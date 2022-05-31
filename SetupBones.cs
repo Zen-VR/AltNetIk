@@ -1,7 +1,6 @@
 using MelonLoader;
 using System.Collections.Generic;
 using VRC;
-using VRC.Networking;
 using VRC.Playables;
 using System.Numerics;
 
@@ -59,6 +58,7 @@ namespace AltNetIk
                 {
                     photonId = photonId,
                     playerTransform = player.transform,
+                    playerAvatarManager = avatarManager,
                     playerPoseRecorder = animationController.GetComponent<PoseRecorder>(),
                     playerHandGestureController = animationController.GetComponent<HandGestureController>(),
                     playerVRCVrIkController = animationController.GetComponentInChildren<VRCVrIkController>(),
@@ -112,6 +112,7 @@ namespace AltNetIk
             {
                 photonId = photonId,
                 playerTransform = player.transform,
+                playerAvatarManager = avatarManager,
                 playerPoseRecorder = animationController.GetComponent<PoseRecorder>(),
                 playerHandGestureController = animationController.GetComponent<HandGestureController>(),
                 playerVRCVrIkController = animationController.GetComponentInChildren<VRCVrIkController>(),

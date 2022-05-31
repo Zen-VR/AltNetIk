@@ -1,4 +1,4 @@
-﻿using MelonLoader;
+using MelonLoader;
 using ReMod.Core.Managers;
 using ReMod.Core.Notification;
 using ReMod.Core.UI.QuickMenu;
@@ -58,7 +58,7 @@ namespace AltNetIk
                 AltNetIk.namePlates = state;
                 MelonPreferences.SetEntryValue(AltNetIk.ModID, "NamePlates", state);
             }, AltNetIk.namePlates);
-            toggles["AutoConnect"] = menu.AddToggle("Auto Connect", "Automatically connect to the AltNetIK server", (state) =>
+            toggles["AutoConnect"] = menu.AddToggle("Auto Connect", "Automatically connect to the AltNetIk server.", (state) =>
             {
                 AltNetIk.autoConnect = state;
                 MelonPreferences.SetEntryValue(AltNetIk.ModID, "ServerAutoConnect", state);
