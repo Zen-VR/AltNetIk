@@ -48,7 +48,7 @@ namespace AltNetIk
 
         private ConcurrentDictionary<int, ReceiverPacketData> receiverPacketData = new ConcurrentDictionary<int, ReceiverPacketData>();
         private ConcurrentDictionary<int, DataBank> receiverLastPacket = new ConcurrentDictionary<int, DataBank>();
-        private PlayerData senderPlayerData = new PlayerData();
+        public PlayerData senderPlayerData = new PlayerData();
 
         private System.Numerics.Quaternion[] netRotations;
         private PacketData senderPacketData = new PacketData();
@@ -139,7 +139,7 @@ namespace AltNetIk
             netPacketProcessor.Subscribe(OnEventPacketReceived, () => new EventData());
             netPacketProcessor.Subscribe(OnPacketReceived, () => new PacketData());
             netPacketProcessor.Subscribe(OnParamPacketReceived, () => new ParamData());
-            
+
             Patches.DoPatches();
 
             Camera.onPreRender = Delegate.Combine(Camera.onPreRender, (Camera.CameraCallback)OnVeryLateUpdate).Cast<Camera.CameraCallback>();
@@ -185,7 +185,7 @@ namespace AltNetIk
                 namePlates = state;
                 MelonPreferences.SetEntryValue(ModID, "NamePlates", state);
             }, namePlates);
-            toggles["AutoConnect"] = menu.AddToggle("Auto Connect", "Automatically connect to the AltNetIK server", (state) =>
+            toggles["AutoConnect"] = menu.AddToggle("Auto Connect", "Automatically connect to the AltNetIk server.", (state) =>
             {
                 autoConnect = state;
                 MelonPreferences.SetEntryValue(ModID, "AutoConnect", state);
@@ -202,10 +202,10 @@ namespace AltNetIk
             var date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             if (date - lastUpdate < 500)
                 return;
-            
+
             lastUpdate = date;
             AutoReconnect();
-            
+
             if (IsConnected)
             {
                 TimeoutCheck();
