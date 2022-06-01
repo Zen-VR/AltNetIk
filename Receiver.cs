@@ -182,7 +182,7 @@ namespace AltNetIk
                 newDataBank.playerRotation = playerRotation;
 
                 boneData.playerTransform.SetPositionAndRotation(playerPosition.ToUnity(), playerRotation.ToUnity());
-                if (boneData.transforms.Length > 0 && boneData.transforms[0] != null)
+                if (boneData.transforms.Length > 0 && boneData.transforms[0] != null && packetData.boneCount > 0)
                 {
                     if (packetData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom)
                     {
