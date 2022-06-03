@@ -29,7 +29,7 @@ namespace AltNetIk
                     if (parameterName == "IsLocal")
                         continue;
 
-                    var type = param.field_Private_ParameterType_0;
+                    var type = param.field_Public_ParameterType_0;
                     switch (type)
                     {
                         case AvatarParameter.ParameterType.Bool:

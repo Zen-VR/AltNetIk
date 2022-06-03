@@ -72,7 +72,7 @@ namespace AltNetIk
             var byteIndex = 0;
             foreach (var parameter in senderPlayerData.parameters)
             {
-                var type = parameter.field_Private_ParameterType_0;
+                var type = parameter.field_Public_ParameterType_0;
                 senderParamData.paramData[byteIndex++] = (byte)type;
                 switch (type)
                 {
