@@ -232,7 +232,7 @@ namespace AltNetIk
                     return;
 
                 var parameter = playerData.parameters[i];
-                var type = parameter.field_Private_ParameterType_0;
+                var type = parameter.field_Public_ParameterType_0;
                 var senderType = (AvatarParameter.ParameterType)packet.paramData[byteIndex++];
                 var senderParam = packet.paramData[byteIndex++];
                 if (type != senderType)
