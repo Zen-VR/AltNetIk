@@ -250,7 +250,7 @@ namespace AltNetIk
                         break;
 
                     case AvatarParameter.ParameterType.Float:
-                        FloatPropertySetter(parameter.Pointer, (senderParam / 127f) - 1f);
+                        FloatPropertySetter(parameter.Pointer, Serializers.DeserializeFloat(senderParam));
                         break;
                 }
 

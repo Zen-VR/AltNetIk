@@ -1,5 +1,6 @@
 ﻿using LiteNetLib.Utils;
 using System.Numerics;
+using System;
 
 namespace AltNetIk
 {
@@ -122,6 +123,38 @@ namespace AltNetIk
             }
 
             return bools;
+        }
+        
+        private  static float ClampFloat(float val) {
+            if (val < -1.0f) {
+                val = -1.0f;
+            }
+            if (val > 1.0f) {
+                val = 1.0f;
+            }
+            return val;
+        }
+
+        /// <summary>
+        /// Serializes a float how VRChat would normally for their parameters
+        /// <br />
+        /// Reference: https://github.com/lyuma/Av3Emulator/blob/master/Scripts/LyumaAv3Runtime.cs#L320
+        /// </summary>
+        /// <param name="value">Value to Serialize</param>
+        /// <returns>Serialize byte representing a float</returns>
+        public static byte SerializeFloat(float value)
+        {
+            value = ClampFloat(value);
+            value *= 127.0f;
+            value = (float) Math.Round(value);
+            return (byte) ((sbyte)value);
+        }
+
+        public static float DeserializeFloat(byte rawByte)
+        {
+            float value = ((sbyte)rawByte) / 127.0f;
+            value = ClampFloat(value);
+            return value;
         }
     }
 }
