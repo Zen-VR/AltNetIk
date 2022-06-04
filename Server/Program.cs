@@ -6,7 +6,7 @@ namespace AltNetIk
 {
     public static class Server
     {
-        public const string version = "1.5.1";
+        public const string version = "1.6.0";
         public static readonly short versionNum = short.Parse(version[..version.LastIndexOf('.')].Replace(".", "")); // 1.3.0 -> 13
 
         public class LobbyUser

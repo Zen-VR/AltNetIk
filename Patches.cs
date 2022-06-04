@@ -61,9 +61,9 @@ namespace AltNetIk
             AltNetIk.Instance.ResetInstance();
         }
 
-        private static void OnCalibrate()
+        private static void OnCalibrate(VRCVrIkController __instance)
         {
-            var avatarManager = AltNetIk.Instance.senderPlayerData?.playerAvatarManager;
+            var avatarManager = __instance.field_Private_VRCAvatarManager_0;
             if (avatarManager != null)
                 AltNetIk.Instance.OnAvatarChange(avatarManager);
         }

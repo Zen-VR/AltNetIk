@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using VRC;
 using VRC.Playables;
 using System.Numerics;
+using VRC.Networking;
 
 namespace AltNetIk
 {
@@ -13,19 +14,31 @@ namespace AltNetIk
             int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
             int boneCount = 0;
             bool[] boneList = new bool[UnityEngine.HumanTrait.BoneCount];
-
-            var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
             var parameters = new List<AvatarParameter>();
+            var expressionParameters = new List<string>();
+            var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
+            var avatarDescriptor = avatarManager.field_Private_VRCAvatarDescriptor_0;
+            if (avatarDescriptor != null)
+            {
+                foreach (var param in avatarDescriptor.expressionParameters.parameters)
+                {
+                    expressionParameters.Add(param.name);
+                }
+            }
+
             short boolParams = 0;
             short intParams = 0;
             short floatParams = 0;
+            var paramIndex = 0;
             if (avatarParams != null)
             {
                 foreach (var param in avatarParams.Values)
                 {
-                    // don't want to set IsLocal status of others. that makes no sense.
+                    paramIndex++;
                     var parameterName = param.field_Private_String_0;
-                    if (parameterName == "IsLocal")
+                    if (parameterName == "IsLocal") // skip IsLocal
+                        continue;
+                    if (paramIndex > 20 && !expressionParameters.Contains(parameterName)) // keep only defaults and expression parameters
                         continue;
 
                     var type = param.field_Public_ParameterType_0;
@@ -43,13 +56,11 @@ namespace AltNetIk
                             floatParams++;
                             break;
                     }
-
                     parameters.Add(param);
                 }
             }
 
             var animationController = player.field_Private_AnimatorControllerManager_0;
-
             UnityEngine.Animator animator = avatarManager.field_Private_Animator_0;
             bool isSdk2 = avatarManager.prop_VRCAvatarDescriptor_0 == null;
             if (animator == null || animator.avatar == null || !animator.avatar.isHuman)
@@ -62,6 +73,7 @@ namespace AltNetIk
                     playerPoseRecorder = animationController.GetComponent<PoseRecorder>(),
                     playerHandGestureController = animationController.GetComponent<HandGestureController>(),
                     playerVRCVrIkController = animationController.GetComponentInChildren<VRCVrIkController>(),
+                    playerNetworkSerializer = player.gameObject.transform.Find("BigData").GetComponent<FlatBufferNetworkSerializer>(),
                     preQArray = new Quaternion[boneCount],
                     preQinvArray = new Quaternion[boneCount],
                     postQArray = new Quaternion[boneCount],
@@ -116,6 +128,7 @@ namespace AltNetIk
                 playerPoseRecorder = animationController.GetComponent<PoseRecorder>(),
                 playerHandGestureController = animationController.GetComponent<HandGestureController>(),
                 playerVRCVrIkController = animationController.GetComponentInChildren<VRCVrIkController>(),
+                playerNetworkSerializer = player.gameObject.transform.Find("BigData").GetComponent<FlatBufferNetworkSerializer>(),
                 preQArray = new Quaternion[boneCount],
                 preQinvArray = new Quaternion[boneCount],
                 postQArray = new Quaternion[boneCount],
@@ -150,6 +163,7 @@ namespace AltNetIk
                 boneData.playerPoseRecorder.enabled = false;
                 boneData.playerHandGestureController.enabled = false;
                 boneData.playerVRCVrIkController.enabled = false;
+                boneData.playerNetworkSerializer.enabled = false;
             }
 
             receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
@@ -160,27 +174,36 @@ namespace AltNetIk
             int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
             int boneCount = 0;
             bool[] boneList = new bool[UnityEngine.HumanTrait.BoneCount];
-
-            var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
             var parameters = new List<AvatarParameter>();
+            var expressionParameters = new List<string>();
+            var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
+            var avatarDescriptor = avatarManager.field_Private_VRCAvatarDescriptor_0;
+            if (avatarDescriptor != null)
+            {
+                foreach (var param in avatarDescriptor.expressionParameters.parameters)
+                {
+                    expressionParameters.Add(param.name);
+                }
+            }
+            var paramIndex = 0;
             senderParamData = new ParamData();
             if (avatarParams != null)
             {
-                var paramCount = 0;
                 foreach (var param in avatarParams.Values)
                 {
-                    // don't want to send our IsLocal status to others. that makes no sense.
+                    paramIndex++;
                     var parameterName = param.field_Private_String_0;
-                    if (parameterName == "IsLocal")
+                    if (parameterName == "IsLocal") // skip IsLocal
+                        continue;
+                    if (paramIndex > 20 && !expressionParameters.Contains(parameterName)) // keep only defaults and expression parameters
                         continue;
 
-                    paramCount++;
                     parameters.Add(param);
                 }
                 senderParamData = new ParamData
                 {
                     photonId = photonId,
-                    paramData = new byte[paramCount * 2]
+                    paramData = new byte[parameters.Count * 2]
                 };
             }
 

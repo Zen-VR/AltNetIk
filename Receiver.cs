@@ -127,6 +127,7 @@ namespace AltNetIk
                     boneData.playerPoseRecorder.enabled = false;
                     boneData.playerHandGestureController.enabled = false;
                     boneData.playerVRCVrIkController.enabled = false;
+                    boneData.playerNetworkSerializer.enabled = false;
                     receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
                 }
 
@@ -214,7 +215,7 @@ namespace AltNetIk
                 return;
 
             bool hasPlayerData = receiverPlayerData.TryGetValue(packet.photonId, out PlayerData playerData);
-            if (!hasPlayerData || playerData.parameters.Count < 19)
+            if (!hasPlayerData || playerData.parameters.Count < 19) // 20 total default params -1 for IsLocal equals 19
                 return;
 
             var paramCount = packet.paramData.Length / 2;
@@ -228,7 +229,7 @@ namespace AltNetIk
             var byteIndex = 0;
             for (int i = 0; i < paramCount; i++)
             {
-                if (isFallback && i > 18) // Only apply default parameters to fallback avatars
+                if (isFallback && i > 18) // Only apply 19 default parameters to fallback avatars
                     return;
 
                 var parameter = playerData.parameters[i];
@@ -374,6 +375,7 @@ namespace AltNetIk
                 playerData.playerPoseRecorder.enabled = true;
                 playerData.playerHandGestureController.enabled = true;
                 playerData.playerVRCVrIkController.enabled = true;
+                playerData.playerNetworkSerializer.enabled = true;
                 receiverPlayerData.AddOrUpdate(photonId, playerData, (k, v) => playerData);
             }
             bool hasPlayerNamePlate = playerNamePlates.TryGetValue(photonId, out NamePlateInfo namePlateInfo);
