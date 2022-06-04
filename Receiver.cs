@@ -127,6 +127,7 @@ namespace AltNetIk
                     boneData.playerPoseRecorder.enabled = false;
                     boneData.playerHandGestureController.enabled = false;
                     boneData.playerVRCVrIkController.enabled = false;
+                    boneData.playerNetworkSerializer.enabled = false;
                     receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
                 }
 
@@ -182,7 +183,7 @@ namespace AltNetIk
                 newDataBank.playerRotation = playerRotation;
 
                 boneData.playerTransform.SetPositionAndRotation(playerPosition.ToUnity(), playerRotation.ToUnity());
-                if (boneData.transforms.Length > 0 && boneData.transforms[0] != null)
+                if (boneData.transforms.Length > 0 && boneData.transforms[0] != null && packetData.boneCount > 0)
                 {
                     if (packetData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom)
                     {
@@ -214,7 +215,7 @@ namespace AltNetIk
                 return;
 
             bool hasPlayerData = receiverPlayerData.TryGetValue(packet.photonId, out PlayerData playerData);
-            if (!hasPlayerData || playerData.parameters.Count < 19)
+            if (!hasPlayerData || playerData.parameters.Count < 19) // 20 total default params -1 for IsLocal equals 19
                 return;
 
             var paramCount = packet.paramData.Length / 2;
@@ -228,11 +229,11 @@ namespace AltNetIk
             var byteIndex = 0;
             for (int i = 0; i < paramCount; i++)
             {
-                if (isFallback && i > 18) // Only apply default parameters to fallback avatars
+                if (isFallback && i > 18) // Only apply 19 default parameters to fallback avatars
                     return;
 
                 var parameter = playerData.parameters[i];
-                var type = parameter.field_Private_ParameterType_0;
+                var type = parameter.field_Public_ParameterType_0;
                 var senderType = (AvatarParameter.ParameterType)packet.paramData[byteIndex++];
                 var senderParam = packet.paramData[byteIndex++];
                 if (type != senderType)
@@ -374,6 +375,7 @@ namespace AltNetIk
                 playerData.playerPoseRecorder.enabled = true;
                 playerData.playerHandGestureController.enabled = true;
                 playerData.playerVRCVrIkController.enabled = true;
+                playerData.playerNetworkSerializer.enabled = true;
                 receiverPlayerData.AddOrUpdate(photonId, playerData, (k, v) => playerData);
             }
             bool hasPlayerNamePlate = playerNamePlates.TryGetValue(photonId, out NamePlateInfo namePlateInfo);

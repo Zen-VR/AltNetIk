@@ -6,7 +6,7 @@ namespace AltNetIk
 {
     public static class Server
     {
-        public const string version = "1.5.0";
+        public const string version = "1.6.0";
         public static readonly short versionNum = short.Parse(version[..version.LastIndexOf('.')].Replace(".", "")); // 1.3.0 -> 13
 
         public class LobbyUser
@@ -322,7 +322,8 @@ namespace AltNetIk
                             {
                                 if (player.photonId == packet.photonId && player.peer.EndPoint.Address != peer.EndPoint.Address)
                                 {
-                                    LogEntry($"Kicked for duplicate photonId, Instance: {packet.lobbyHash} PhotonId: {player.photonId} Current: {player.peer.EndPoint} Joining: {peer.EndPoint}");
+                                    LogEntry($"Kicked for duplicate photonId, Instance: {packet.lobbyHash} PhotonId: {player.photonId} Current: {player.peer.EndPoint.Address}/{player.peer.EndPoint} Joining: {peer.EndPoint.Address}/{peer.EndPoint}");
+                                    // addresses somehow not matching, null check maybe?
                                     peer.Disconnect();
                                     return;
                                 }
