@@ -128,7 +128,6 @@ namespace AltNetIk
                     boneData.playerPoseRecorder.enabled = false;
                     boneData.playerHandGestureController.enabled = false;
                     boneData.playerVRCVrIkController.enabled = false;
-                    boneData.playerNetworkSerializer.enabled = false;
                     receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
                 }
 
@@ -376,7 +375,6 @@ namespace AltNetIk
                 playerData.playerPoseRecorder.enabled = true;
                 playerData.playerHandGestureController.enabled = true;
                 playerData.playerVRCVrIkController.enabled = true;
-                playerData.playerNetworkSerializer.enabled = true;
                 receiverPlayerData.AddOrUpdate(photonId, playerData, (k, v) => playerData);
             }
             bool hasPlayerNamePlate = playerNamePlates.TryGetValue(photonId, out NamePlateInfo namePlateInfo);

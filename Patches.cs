@@ -1,4 +1,5 @@
 using HarmonyLib;
+using ReMod.Core;
 using System;
 using System.Linq;
 using System.Reflection;
