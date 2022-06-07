@@ -42,6 +42,7 @@ namespace AltNetIk
 
         private static ConcurrentDictionary<int, ReceiverPacketData> receiverPacketData = new ConcurrentDictionary<int, ReceiverPacketData>();
         private ConcurrentDictionary<int, DataBank> receiverLastPacket = new ConcurrentDictionary<int, DataBank>();
+        private static ConcurrentDictionary<int, ParamData> receiverParamData = new ConcurrentDictionary<int, ParamData>();
         private PlayerData senderPlayerData = new PlayerData();
 
         private System.Numerics.Quaternion[] netRotations;
@@ -60,6 +61,10 @@ namespace AltNetIk
         private Int64 lastUpdate;
         private Int64 ReconnectTimer;
         private Int64 ReconnectLastAttempt;
+        private static List<IntPtr> boolParamsInUse = new List<IntPtr>();
+        private static List<IntPtr> intParamsInUse = new List<IntPtr>();
+        private static List<IntPtr> floatParamsInUse = new List<IntPtr>();
+        private static bool skipSettingParam;
 
         internal delegate void BoolPropertySetterDelegate(IntPtr @this, bool value);
 
@@ -67,6 +72,9 @@ namespace AltNetIk
 
         internal static void BoolPropertySetter(IntPtr @this, bool value)
         {
+            if (skipSettingParam && boolParamsInUse.Contains(@this))
+                return;
+
             _boolPropertySetterDelegate(@this, value);
         }
 
@@ -76,6 +84,9 @@ namespace AltNetIk
 
         internal static void IntPropertySetter(IntPtr @this, int value)
         {
+            if (skipSettingParam && intParamsInUse.Contains(@this))
+                return;
+
             _intPropertySetterDelegate(@this, value);
         }
 
@@ -85,6 +96,9 @@ namespace AltNetIk
 
         internal static void FloatPropertySetter(IntPtr @this, float value)
         {
+            if (skipSettingParam && floatParamsInUse.Contains(@this))
+                return;
+
             _floatPropertySetterDelegate(@this, value);
         }
 
@@ -152,8 +166,8 @@ namespace AltNetIk
 
         public override void OnUpdate()
         {
-            if (client != null)
-                client.PollEvents();
+            client?.PollEvents();
+            ApplyAvatarParams();
 
             var date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             if (date - lastUpdate >= 500)
@@ -240,6 +254,9 @@ namespace AltNetIk
             frozenPlayers.Clear();
             receiverPlayerData.Clear();
             playerNamePlates.Clear();
+            boolParamsInUse.Clear();
+            intParamsInUse.Clear();
+            floatParamsInUse.Clear();
         }
 
         public void OnPlayerJoined(Player player)
@@ -266,11 +283,9 @@ namespace AltNetIk
             int photonId = player.field_Private_Player_0.field_Private_Int32_0;
             if (photonId != currentPhotonId)
             {
+                DisableReceiver(photonId);
                 playerNamePlates.Remove(photonId);
                 receiverPlayerData.TryRemove(photonId, out _);
-                receiverPacketData.TryRemove(photonId, out _);
-                receiverLastPacket.TryRemove(photonId, out _);
-                RemoveFreeze(photonId);
             }
         }
 

@@ -97,7 +97,8 @@ namespace AltNetIk
 
         public override void OnLateUpdate()
         {
-            if (!IsConnected || !IsReceiving) return;
+            if (!IsReceiving)
+                return;
 
             foreach (ReceiverPacketData packetData in receiverPacketData.Values)
             {
@@ -123,11 +124,7 @@ namespace AltNetIk
 
                 if (!boneData.active)
                 {
-                    boneData.active = true;
-                    boneData.playerPoseRecorder.enabled = false;
-                    boneData.playerHandGestureController.enabled = false;
-                    boneData.playerVRCVrIkController.enabled = false;
-                    receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
+                    EnableReceiver(boneData);
                 }
 
                 var dataBankA = packetData.dataBankA;
@@ -213,59 +210,74 @@ namespace AltNetIk
             if (!IsReceiving)
                 return;
 
-            bool hasPlayerData = receiverPlayerData.TryGetValue(packet.photonId, out PlayerData playerData);
-            if (!hasPlayerData || playerData.parameters.Count < 19) // 20 total default params -1 for IsLocal equals 19
-                return;
-
-            var paramCount = packet.paramData.Length / 2;
-            if (paramCount < 19)
-                return;
-
-            var isFallback = playerData.avatarKind == (short)VRCAvatarManager.AvatarKind.Fallback;
-            if (playerData.parameters.Count != paramCount)
-                isFallback = true;
-
-            var byteIndex = 0;
-            for (int i = 0; i < paramCount; i++)
-            {
-                if (isFallback && i > 18) // Only apply 19 default parameters to fallback avatars
-                    return;
-
-                var parameter = playerData.parameters[i];
-                var type = parameter.field_Public_ParameterType_0;
-                var senderType = (AvatarParameter.ParameterType)packet.paramData[byteIndex++];
-                var senderParam = packet.paramData[byteIndex++];
-                if (type != senderType)
-                    return;
-
-                switch (type)
-                {
-                    case AvatarParameter.ParameterType.Bool:
-                        BoolPropertySetter(parameter.Pointer, senderParam != 0);
-                        break;
-
-                    case AvatarParameter.ParameterType.Int:
-                        IntPropertySetter(parameter.Pointer, senderParam);
-                        break;
-
-                    case AvatarParameter.ParameterType.Float:
-                        FloatPropertySetter(parameter.Pointer, Serializers.DeserializeFloat(senderParam));
-                        break;
-                }
-
-                // Fix avatar limb grabber
-                if (i == 2) // GestureLeft
-                {
-                    playerData.playerHandGestureController.field_Private_Gesture_0 = (HandGestureController.Gesture)senderParam;
-                }
-                else if (i == 4) // GestureRight
-                {
-                    playerData.playerHandGestureController.field_Private_Gesture_2 = (HandGestureController.Gesture)senderParam;
-                }
-            }
+            receiverParamData.AddOrUpdate(packet.photonId, packet, (k, v) => packet);
         }
 
-        public static void OnEventPacketReceived(EventData packet)
+        public void ApplyAvatarParams()
+        {
+            if (!IsReceiving)
+                return;
+
+            skipSettingParam = false;
+
+            foreach (var packet in receiverParamData.Values)
+            {
+                bool hasPlayerData = receiverPlayerData.TryGetValue(packet.photonId, out PlayerData playerData);
+                if (!hasPlayerData || playerData.parameters.Count < 19) // 20 total default params -1 for IsLocal equals 19
+                    return;
+
+                var paramCount = packet.paramData.Length / 2;
+                if (paramCount < 19)
+                    return;
+
+                var isFallback = playerData.avatarKind == (short)VRCAvatarManager.AvatarKind.Fallback;
+                if (playerData.parameters.Count != paramCount)
+                    isFallback = true;
+
+                var byteIndex = 0;
+                for (int i = 0; i < paramCount; i++)
+                {
+                    if (isFallback && i > 18) // Only apply 19 default parameters to fallback avatars
+                        return;
+
+                    var parameter = playerData.parameters[i];
+                    var type = parameter.field_Public_ParameterType_0;
+                    var senderType = (AvatarParameter.ParameterType)packet.paramData[byteIndex++];
+                    var senderParam = packet.paramData[byteIndex++];
+                    if (type != senderType)
+                        return;
+
+                    switch (type)
+                    {
+                        case AvatarParameter.ParameterType.Bool:
+                            BoolPropertySetter(parameter.Pointer, senderParam != 0);
+                            break;
+
+                        case AvatarParameter.ParameterType.Int:
+                            IntPropertySetter(parameter.Pointer, senderParam);
+                            break;
+
+                        case AvatarParameter.ParameterType.Float:
+                            FloatPropertySetter(parameter.Pointer, Serializers.DeserializeFloat(senderParam));
+                            break;
+                    }
+
+                    // Fix avatar limb grabber
+                    if (i == 2) // GestureLeft
+                    {
+                        playerData.playerHandGestureController.field_Private_Gesture_0 = (HandGestureController.Gesture)senderParam;
+                    }
+                    else if (i == 4) // GestureRight
+                    {
+                        playerData.playerHandGestureController.field_Private_Gesture_2 = (HandGestureController.Gesture)senderParam;
+                    }
+                }
+            }
+
+            skipSettingParam = true;
+        }
+
+        public void OnEventPacketReceived(EventData packet)
         {
             switch (packet.eventName)
             {
@@ -361,12 +373,33 @@ namespace AltNetIk
             UpdateNamePlates();
         }
 
-        private static void DisableReceiver(int photonId)
+        private void DisableReceiver(int photonId)
         {
+            RemoveFreeze(photonId);
+            receiverLastPacket.TryRemove(photonId, out _);
+            receiverParamData.TryRemove(photonId, out _);
             receiverPacketData.TryRemove(photonId, out _);
             bool hasReceiverPlayerData = receiverPlayerData.TryGetValue(photonId, out PlayerData playerData);
             if (hasReceiverPlayerData)
             {
+                foreach (var parameter in playerData.parameters)
+                {
+                    switch (parameter.field_Public_ParameterType_0)
+                    {
+                        case AvatarParameter.ParameterType.Bool:
+                            boolParamsInUse.Remove(parameter.Pointer);
+                            break;
+
+                        case AvatarParameter.ParameterType.Int:
+                            intParamsInUse.Remove(parameter.Pointer);
+                            break;
+
+                        case AvatarParameter.ParameterType.Float:
+                            floatParamsInUse.Remove(parameter.Pointer);
+                            break;
+                    }
+                }
+
                 if (playerData.playerTransform == null)
                     return;
 
@@ -383,7 +416,36 @@ namespace AltNetIk
                 namePlateInfo.namePlateStatusLine.localPosition = new UnityEngine.Vector3 { x = 0.0066f, y = -58f, z = 0f };
                 namePlateInfo.namePlateAvatarProgress.localPosition = new UnityEngine.Vector3 { x = 0f, y = -15f, z = 0f };
             }
-            RemoveFreeze(photonId);
+        }
+
+        private void EnableReceiver(PlayerData playerData)
+        {
+            playerData.active = true;
+            playerData.playerPoseRecorder.enabled = false;
+            playerData.playerHandGestureController.enabled = false;
+            playerData.playerVRCVrIkController.enabled = false;
+            foreach (var parameter in playerData.parameters)
+            {
+                switch (parameter.field_Public_ParameterType_0)
+                {
+                    case AvatarParameter.ParameterType.Bool:
+                        if (!boolParamsInUse.Contains(parameter.Pointer))
+                            boolParamsInUse.Add(parameter.Pointer);
+                        break;
+
+                    case AvatarParameter.ParameterType.Int:
+                        if (!intParamsInUse.Contains(parameter.Pointer))
+                            intParamsInUse.Add(parameter.Pointer);
+                        break;
+
+                    case AvatarParameter.ParameterType.Float:
+                        if (!floatParamsInUse.Contains(parameter.Pointer))
+                            floatParamsInUse.Add(parameter.Pointer);
+                        break;
+                }
+            }
+
+            receiverPlayerData.AddOrUpdate(playerData.photonId, playerData, (k, v) => playerData);
         }
     }
 }
