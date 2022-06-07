@@ -157,14 +157,9 @@ namespace AltNetIk
 
             bool hasPacketData = receiverPacketData.TryGetValue(photonId, out ReceiverPacketData packetData);
             if (hasPacketData)
-            {
-                boneData.active = true;
-                boneData.playerPoseRecorder.enabled = false;
-                boneData.playerHandGestureController.enabled = false;
-                boneData.playerVRCVrIkController.enabled = false;
-            }
-
-            receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
+                EnableReceiver(boneData);
+            else
+                receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
         }
 
         public void SetSenderBones(VRCPlayer player, VRCAvatarManager avatarManager, short avatarKind)
