@@ -13,6 +13,7 @@ namespace AltNetIk
             writer.Put(quaternion.Z);
             writer.Put(quaternion.W);
         }
+
         public static Quaternion DeserializeQuaternion(NetDataReader reader)
         {
             float x = reader.GetFloat();
@@ -22,6 +23,7 @@ namespace AltNetIk
 
             return new Quaternion(x, y, z, w);
         }
+
         public static void SerializeQuaternionArray(NetDataWriter writer, Quaternion[] quaternions)
         {
             float[] floats = new float[quaternions.Length * 4];
@@ -34,6 +36,7 @@ namespace AltNetIk
             }
             writer.PutArray(floats);
         }
+
         public static Quaternion[] DeserializeQuaternionArray(NetDataReader reader)
         {
             float[] array = reader.GetFloatArray();
@@ -48,7 +51,7 @@ namespace AltNetIk
             {
                 quaternions[i] = new Quaternion(array[i + 0], array[i + 1], array[i + 2], array[i + 3]);
             }
-            
+
             return quaternions;
         }
 
@@ -58,6 +61,7 @@ namespace AltNetIk
             writer.Put(vector.Y);
             writer.Put(vector.Z);
         }
+
         public static Vector3 DeserializeVector3(NetDataReader reader)
         {
             float x = reader.GetFloat();
@@ -66,6 +70,7 @@ namespace AltNetIk
 
             return new Vector3(x, y, z);
         }
+
         public static void SerializeVector3Array(NetDataWriter writer, Vector3[] vectors)
         {
             float[] floats = new float[vectors.Length * 3];
@@ -77,6 +82,7 @@ namespace AltNetIk
             }
             writer.PutArray(floats);
         }
+
         public static Vector3[] DeserializeVector3Array(NetDataReader reader)
         {
             float[] array = reader.GetFloatArray();
@@ -111,6 +117,7 @@ namespace AltNetIk
 
             writer.Put(packed);
         }
+
         public static bool[] DeserializePackedBoolArray(NetDataReader reader)
         {
             ulong packed = reader.GetULong();
@@ -124,12 +131,15 @@ namespace AltNetIk
 
             return bools;
         }
-        
-        private  static float ClampFloat(float val) {
-            if (val < -1.0f) {
+
+        private static float ClampFloat(float val)
+        {
+            if (val < -1.0f)
+            {
                 val = -1.0f;
             }
-            if (val > 1.0f) {
+            if (val > 1.0f)
+            {
                 val = 1.0f;
             }
             return val;
@@ -146,15 +156,14 @@ namespace AltNetIk
         {
             value = ClampFloat(value);
             value *= 127.0f;
-            value = (float) Math.Round(value);
-            return (byte) ((sbyte)value);
+            value = (float)Math.Round(value);
+            return (byte)(sbyte)value;
         }
 
         public static float DeserializeFloat(byte rawByte)
         {
             float value = ((sbyte)rawByte) / 127.0f;
-            value = ClampFloat(value);
-            return value;
+            return ClampFloat(value);
         }
     }
 }
