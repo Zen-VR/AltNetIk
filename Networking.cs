@@ -114,7 +114,7 @@ namespace AltNetIk
 
         private void Disconnect()
         {
-            SendDisconnect();
+            StopSending();
 
             ReconnectLastAttempt = 0;
             bool wasConnected = client != null;

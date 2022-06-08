@@ -25,6 +25,7 @@ namespace AltNetIk
         public static MelonLogger.Instance Logger;
         public static bool IsConnected = false;
         public static bool IsSending = false;
+        public static bool IsSendingBlocked = false;
         public static bool IsReceiving = true;
         public static bool IsFrozen = false;
 
@@ -214,7 +215,7 @@ namespace AltNetIk
         {
             IsSending = !IsSending;
             if (!IsSending)
-                SendDisconnect();
+                StopSending();
             Buttons.UpdateAllButtons();
         }
 

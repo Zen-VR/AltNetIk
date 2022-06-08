@@ -4,6 +4,8 @@ using VRC;
 using VRC.Playables;
 using System.Numerics;
 using VRC.Networking;
+using VRC.Core;
+using System;
 
 namespace AltNetIk
 {
@@ -62,7 +64,15 @@ namespace AltNetIk
 
             var animationController = player.field_Private_AnimatorControllerManager_0;
             UnityEngine.Animator animator = avatarManager.field_Private_Animator_0;
+
             bool isSdk2 = avatarManager.prop_VRCAvatarDescriptor_0 == null;
+            if (isSdk2 && animator != null)
+            {
+                PipelineManager pipelineManager = animator.gameObject.GetComponent<PipelineManager>();
+                if (pipelineManager?.blueprintId == "avtr_749445a8-d9bf-4d48-b077-d18b776f66f7")
+                    isSdk2 = false; // skip SDK2 check for loading avatar
+            }
+
             if (animator == null || animator.avatar == null || !animator.avatar.isHuman)
             {
                 PlayerData emptyBoneData = new PlayerData
@@ -179,6 +189,7 @@ namespace AltNetIk
             }
             var paramIndex = 0;
             senderParamData = new ParamData();
+            AvatarParameter inStationParam = null;
             if (avatarParams != null)
             {
                 foreach (var param in avatarParams.Values)
@@ -187,6 +198,8 @@ namespace AltNetIk
                     var parameterName = param.field_Private_String_0;
                     if (parameterName == "IsLocal") // skip IsLocal
                         continue;
+                    if (parameterName == "InStation")
+                        inStationParam = param;
                     if (paramIndex > 20 && !expressionParameters.Contains(parameterName)) // keep only defaults and expression parameters
                         continue;
 
@@ -201,7 +214,14 @@ namespace AltNetIk
 
             senderPacketData = new PacketData();
             UnityEngine.Animator animator = avatarManager.field_Private_Animator_0;
+
             bool isSdk2 = avatarManager.prop_VRCAvatarDescriptor_0 == null;
+            if (isSdk2 && animator != null)
+            {
+                PipelineManager pipelineManager = animator.gameObject.GetComponent<PipelineManager>();
+                if (pipelineManager?.blueprintId == "avtr_749445a8-d9bf-4d48-b077-d18b776f66f7")
+                    isSdk2 = false; // skip SDK2 check for loading avatar
+            }
 
             if (animator == null || animator.avatar == null || !animator.avatar.isHuman)
             {
@@ -219,7 +239,8 @@ namespace AltNetIk
                     boneList = boneList,
                     parameters = parameters,
                     avatarKind = avatarKind,
-                    isSdk2 = isSdk2
+                    isSdk2 = isSdk2,
+                    inStationParam = inStationParam
                 };
                 return;
             }
@@ -272,7 +293,8 @@ namespace AltNetIk
                 boneList = boneList,
                 parameters = parameters,
                 avatarKind = avatarKind,
-                isSdk2 = isSdk2
+                isSdk2 = isSdk2,
+                inStationParam = inStationParam
             };
 
             int index = -1;

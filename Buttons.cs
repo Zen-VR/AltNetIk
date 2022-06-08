@@ -1,4 +1,4 @@
-using MelonLoader;
+﻿using MelonLoader;
 using ReMod.Core.Managers;
 using ReMod.Core.Notification;
 using ReMod.Core.UI.QuickMenu;
@@ -115,6 +115,11 @@ namespace AltNetIk
                 UpdateButtonText("ToggleReceive", "Receive\n" + AltNetIk.color("#00ff00", "Enabled"));
             else
                 UpdateButtonText("ToggleReceive", "Receive\n" + AltNetIk.color("#ff0000", "Disabled"));
+
+            if (buttons.ContainsKey("ToggleSend"))
+                buttons["ToggleSend"].Interactable = !AltNetIk.IsSendingBlocked;
+            if (AltNetIk.IsSendingBlocked)
+                UpdateButtonText("ToggleSend", "Send\n" + AltNetIk.color("#ffff00", "Blocked"));
 
             UpdatePing();
         }
