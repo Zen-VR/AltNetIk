@@ -52,7 +52,7 @@ namespace AltNetIk
             if (senderPlayerData.transforms.Length > 0 && senderPlayerData.transforms[0] != null)
             {
                 senderPacketData.hipPosition = senderPlayerData.transforms[0].position.ToSystem();
-                senderPacketData.hipRotation = senderPlayerData.preQinvArray[0] * senderPlayerData.transforms[0].rotation.ToSystem() * senderPlayerData.postQArray[0];
+                senderPacketData.hipRotation = senderPlayerData.transforms[0].rotation.ToSystem();
             }
 
             MelonCoroutines.Start(SendData());
