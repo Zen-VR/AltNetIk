@@ -305,7 +305,7 @@ namespace AltNetIk
             var date = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             foreach (ReceiverPacketData packetData in receiverPacketData.Values)
             {
-                if (packetData.lastTimeReceived > 0 && date - packetData.lastTimeReceived >= 3000)
+                if (packetData.lastTimeReceived > 0 && date - packetData.lastTimeReceived >= 6000)
                 {
                     //player connection died
                     DisableReceiver(packetData.photonId);

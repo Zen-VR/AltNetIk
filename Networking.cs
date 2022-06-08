@@ -102,6 +102,7 @@ namespace AltNetIk
         private void DisconnectSilent()
         {
             IsConnected = false;
+            skipSettingParam = false;
             if (client != null)
             {
                 client.DisconnectAll();
