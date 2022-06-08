@@ -31,6 +31,7 @@ namespace AltNetIk
         public MelonLogger.Instance Logger { get; }
         private bool IsConnected = false;
         private bool IsSending = false;
+        private bool IsSendingBlocked = false;
         private bool IsReceiving = true;
         public static bool IsFrozen = false; // needs to stay public static (for now)
 
@@ -247,7 +248,7 @@ namespace AltNetIk
         {
             IsSending = !IsSending;
             if (!IsSending)
-                SendDisconnect();
+                StopSending();
             UpdateAllButtons();
         }
 
@@ -423,6 +424,11 @@ namespace AltNetIk
                 UpdateButtonText("ToggleReceive", "Receive\n" + StringToColor("#00ff00", "Enabled"));
             else
                 UpdateButtonText("ToggleReceive", "Receive\n" + StringToColor("#ff0000", "Disabled"));
+
+            if (buttons.ContainsKey("ToggleSend"))
+                buttons["ToggleSend"].Interactable = !IsSendingBlocked;
+            if (IsSendingBlocked)
+                UpdateButtonText("ToggleSend", "Send\n" + StringToColor("#ffff00", "Blocked"));
 
             UpdatePing();
         }

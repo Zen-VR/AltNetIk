@@ -17,11 +17,14 @@ namespace AltNetIk
                 !IsConnected ||
                 !IsSending ||
                 currentPhotonId == 0 ||
-                senderPlayerData.playerTransform == null ||
-                (senderPlayerData.isSdk2 && senderPlayerData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom))
+                senderPlayerData.playerTransform == null)
             {
                 return;
             }
+
+            UpdateAllowedToSend(senderPlayerData);
+            if (IsSendingBlocked)
+                return;
 
             netRotations = new System.Numerics.Quaternion[senderPlayerData.boneCount];
 
@@ -112,7 +115,7 @@ namespace AltNetIk
             serverPeer.Send(writer, DeliveryMethod.ReliableOrdered);
         }
 
-        public void SendDisconnect()
+        public void StopSending()
         {
             if (serverPeer == null) return;
             NetDataWriter writer = new NetDataWriter();
@@ -125,6 +128,30 @@ namespace AltNetIk
             };
             netPacketProcessor.Write(writer, eventData);
             serverPeer.Send(writer, DeliveryMethod.ReliableOrdered);
+        }
+
+        public void UpdateAllowedToSend(PlayerData playerData)
+        {
+            if ((playerData.isSdk2 && playerData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom) ||
+                playerData.inStationParam?.field_Private_Boolean_0 == true)
+            {
+                if (!IsSendingBlocked)
+                {
+                    Buttons.UpdateAllButtons();
+                    StopSending();
+                }
+
+                IsSendingBlocked = true;
+            }
+            else
+            {
+                if (IsSendingBlocked)
+                {
+                    Buttons.UpdateAllButtons();
+                }
+
+                IsSendingBlocked = false;
+            }
         }
     }
 }
