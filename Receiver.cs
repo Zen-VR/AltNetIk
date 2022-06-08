@@ -194,10 +194,9 @@ namespace AltNetIk
                     else
                     {
                         Quaternion boneRotation = Quaternion.Slerp(dataBankB.hipRotation, dataBankA.hipRotation, deltaFloat);
-                        Quaternion hipRotation = boneData.preQArray[0] * boneRotation * boneData.postQinvArray[0];
 
-                        newDataBank.hipRotation = hipRotation;
-                        boneData.transforms[0].SetPositionAndRotation(hipPosition.ToUnity(), hipRotation.ToUnity());
+                        newDataBank.hipRotation = boneRotation;
+                        boneData.transforms[0].SetPositionAndRotation(hipPosition.ToUnity(), boneRotation.ToUnity());
                     }
                 }
 
