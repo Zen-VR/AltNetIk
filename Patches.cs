@@ -19,7 +19,7 @@ namespace AltNetIk
 
             // Patches stolen from Loukylor, knah and Requi
             harmony.Patch(typeof(VRCAvatarManager).GetMethods().First(mb => mb.Name.StartsWith("Method_Private_Boolean_GameObject_String_Single_")), null, new HarmonyMethod(typeof(Patches).GetMethod(nameof(OnAvatarInit), BindingFlags.NonPublic | BindingFlags.Static)));
-            harmony.Patch(typeof(VRCVrIkController).GetMethod("Method_Private_Void_PDM_8"), null, new HarmonyMethod(typeof(Patches).GetMethod(nameof(OnCalibrate), BindingFlags.NonPublic | BindingFlags.Static)));
+            harmony.Patch(typeof(PipelineManager).GetMethod(nameof(PipelineManager.Start)), null, new HarmonyMethod(typeof(Patches).GetMethod(nameof(OnAvatarChanged), BindingFlags.NonPublic | BindingFlags.Static)));
             harmony.Patch(typeof(VRC.UI.Elements.QuickMenu).GetMethod(nameof(VRC.UI.Elements.QuickMenu.OnEnable)), new HarmonyMethod(typeof(Patches).GetMethod(nameof(OnQuickMenuOpen), BindingFlags.NonPublic | BindingFlags.Static)));
         }
 
@@ -28,11 +28,16 @@ namespace AltNetIk
             AltNetIk.Instance.OnAvatarInit(__instance, __instance.prop_GameObject_0);
         }
 
-        private static void OnCalibrate(VRCVrIkController __instance)
+        private static void OnAvatarChanged(PipelineManager __instance)
         {
-            var avatarManager = __instance.field_Private_VRCAvatarManager_0;
-            if (avatarManager != null)
-                AltNetIk.Instance.OnAvatarChange(avatarManager);
+            var avatarManager = VRCPlayer.field_Internal_Static_VRCPlayer_0?.prop_VRCAvatarManager_0;
+            if (avatarManager == null)
+                return;
+
+            if (__instance.gameObject.Pointer != VRCPlayer.field_Internal_Static_VRCPlayer_0.prop_VRCAvatarManager_0.field_Private_GameObject_0.Pointer)
+                return;
+
+            AltNetIk.Instance.OnAvatarChange(avatarManager);
         }
 
         private static void OnQuickMenuOpen()
