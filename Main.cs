@@ -428,7 +428,7 @@ namespace AltNetIk
             if (buttons.ContainsKey("ToggleSend"))
                 buttons["ToggleSend"].Interactable = !IsSendingBlocked;
             if (IsSendingBlocked)
-                UpdateButtonText("ToggleSend", "Send\n" + StringToColor("#ffff00", "Blocked"));
+                UpdateButtonText("ToggleSend", "Send\n" + StringToColor("#ffff00", "SDK2/Chair Disabled"));
 
             UpdatePing();
         }
