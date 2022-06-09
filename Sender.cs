@@ -137,7 +137,7 @@ namespace AltNetIk
             {
                 if (!IsSendingBlocked)
                 {
-                    Buttons.UpdateAllButtons();
+                    UpdateAllButtons();
                     StopSending();
                 }
 
@@ -147,7 +147,7 @@ namespace AltNetIk
             {
                 if (IsSendingBlocked)
                 {
-                    Buttons.UpdateAllButtons();
+                    UpdateAllButtons();
                 }
 
                 IsSendingBlocked = false;

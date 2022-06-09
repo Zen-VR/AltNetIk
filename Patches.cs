@@ -37,7 +37,7 @@ namespace AltNetIk
             if (__instance.gameObject.Pointer != VRCPlayer.field_Internal_Static_VRCPlayer_0.prop_VRCAvatarManager_0.field_Private_GameObject_0.Pointer)
                 return;
 
-            AltNetIk.Instance.OnAvatarChange(avatarManager);
+            AltNetIk.Instance.OnAvatarIsReady(avatarManager.field_Private_VRCPlayer_0);
         }
 
         private static void OnQuickMenuOpen()
