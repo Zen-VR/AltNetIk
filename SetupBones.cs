@@ -21,7 +21,7 @@ namespace AltNetIk
             var expressionParameters = new List<string>();
             var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
             var avatarDescriptor = avatarManager.field_Private_VRCAvatarDescriptor_0;
-            if (avatarDescriptor != null)
+            if (avatarDescriptor?.expressionParameters != null)
             {
                 foreach (var param in avatarDescriptor.expressionParameters.parameters)
                 {
@@ -181,7 +181,7 @@ namespace AltNetIk
             var expressionParameters = new List<string>();
             var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
             var avatarDescriptor = avatarManager.field_Private_VRCAvatarDescriptor_0;
-            if (avatarDescriptor != null)
+            if (avatarDescriptor?.expressionParameters != null)
             {
                 foreach (var param in avatarDescriptor.expressionParameters.parameters)
                 {
