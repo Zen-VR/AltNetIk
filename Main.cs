@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -124,7 +125,10 @@ namespace AltNetIk
                 Logger.Warning("TabExtension is missing, to fix broken quick menu tabs install it from here: https://github.com/DragonPlayerX/TabExtension/releases/latest");
 
             _streamSafe = Environment.GetCommandLineArgs().Contains("-streamsafe");
-            ReMod_Core_Downloader.LoadReModCore();
+
+            var ReModCoreUpdaterPath = Path.Combine(MelonUtils.GetGameDataDirectory(), "../Plugins/ReMod.Core.Updater.dll");
+            if (!File.Exists(ReModCoreUpdaterPath))
+                ReMod_Core_Downloader.LoadReModCore();
 
             netPacketProcessor.RegisterNestedType<System.Numerics.Quaternion>(Serializers.SerializeQuaternion, Serializers.DeserializeQuaternion);
             netPacketProcessor.RegisterNestedType<System.Numerics.Vector3>(Serializers.SerializeVector3, Serializers.DeserializeVector3);
