@@ -45,7 +45,6 @@ namespace AltNetIk
             public List<AvatarParameter> parameters;
             public bool active;
             public bool isSdk2;
-            public AvatarParameter inStationParam;
         }
 
         public struct ReceiverPacketData

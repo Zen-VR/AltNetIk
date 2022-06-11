@@ -133,24 +133,21 @@ namespace AltNetIk
         public void UpdateAllowedToSend(PlayerData playerData)
         {
             if ((playerData.isSdk2 && playerData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom) ||
-                playerData.inStationParam?.field_Private_Boolean_0 == true)
+                playerData.playerAvatarManager.field_Public_VRC_StationInternal_0?.prop_PhotonView_0 != null)
             {
+                // check if seated in station and if it's synced
+                // check if custom avatar is SDk2
                 if (!IsSendingBlocked)
                 {
+                    IsSendingBlocked = true;
                     UpdateAllButtons();
                     StopSending();
                 }
-
-                IsSendingBlocked = true;
             }
-            else
+            else if (IsSendingBlocked)
             {
-                if (IsSendingBlocked)
-                {
-                    UpdateAllButtons();
-                }
-
                 IsSendingBlocked = false;
+                UpdateAllButtons();
             }
         }
     }
