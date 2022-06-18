@@ -146,7 +146,7 @@ namespace AltNetIk
                 }
 
                 LogEntry($"Server stopped");
-                Server.Stop();
+                Server.Stop(false);
             }).Start();
 
             while (_running)

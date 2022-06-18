@@ -54,20 +54,22 @@ namespace AltNetIk
 
         private void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
         {
+            string message;
             if (disconnectInfo.Reason == DisconnectReason.RemoteConnectionClose)
             {
                 ReconnectLastAttempt = 0; // disable auto reconnect
             }
-            string message;
-            if (disconnectInfo.AdditionalData != null && disconnectInfo.AdditionalData.RawDataSize > 0)
+            if (disconnectInfo.AdditionalData?.RawDataSize > 0)
             {
                 NetPacketReader reader = disconnectInfo.AdditionalData;
-                message = $"Server Disconnected: {disconnectInfo.Reason} ({reader.GetString()})";
+                var disconnectReason = reader.GetString();
+                message = $"Server Disconnected: {disconnectInfo.Reason} ({disconnectReason})";
             }
             else
             {
                 message = $"Server Disconnected: {disconnectInfo.Reason}";
             }
+
             Logger.Msg(ConsoleColor.Red, message);
             NotificationSystem.EnqueueNotification("AltNetIk", message);
 
