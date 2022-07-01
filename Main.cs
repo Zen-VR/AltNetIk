@@ -67,6 +67,7 @@ namespace AltNetIk
         private bool namePlates;
         private string serverIP;
         private int serverPort;
+        private bool floatPrecision;
         private Int64 lastUpdate;
         private Int64 ReconnectTimer;
         private Int64 ReconnectLastAttempt;
@@ -138,11 +139,13 @@ namespace AltNetIk
             MelonPreferences.CreateEntry(ModID, "AutoConnect", true, "Auto connect to server on startup");
             MelonPreferences.CreateEntry(ModID, "NamePlates", true, "Nameplate stats");
             MelonPreferences.CreateEntry(ModID, "EnableLerp", true, "Receiver interpolation");
+            MelonPreferences.CreateEntry(ModID, "FloatPrecision", true, "Avatar parameter float precision");
             autoConnect = MelonPreferences.GetEntryValue<bool>(ModID, "AutoConnect");
             namePlates = MelonPreferences.GetEntryValue<bool>(ModID, "NamePlates");
             enableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "EnableLerp");
             serverIP = "188.40.191.108";
             serverPort = 9053;
+            floatPrecision = MelonPreferences.GetEntryValue<bool>(ModID, "FloatPrecision");
 
             if (!MelonHandler.Mods.Any(m => m.Info.Name == "TabExtension"))
                 Logger.Warning("TabExtension is missing, to fix broken quick menu tabs install it from here: https://github.com/DragonPlayerX/TabExtension/releases/latest");
@@ -237,6 +240,17 @@ namespace AltNetIk
             enableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "EnableLerp");
             UpdateToggleState("NameplateStats", namePlates);
             UpdateToggleState("EnableLerp", enableLerp);
+            var newfloatPrecision = MelonPreferences.GetEntryValue<bool>(ModID, "FloatPrecision");
+            if (newfloatPrecision != floatPrecision)
+            {
+                int paramCount = senderPlayerData.parameters.Count;
+                int paramBytesLength = (paramCount * 2) + 2;
+                if (newfloatPrecision)
+                    paramBytesLength += senderPlayerData.floatParamCount;
+
+                senderParamData.paramData = new byte[paramBytesLength];
+                floatPrecision = newfloatPrecision;
+            }
         }
 
         public override void OnApplicationQuit()

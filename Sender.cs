@@ -63,40 +63,52 @@ namespace AltNetIk
         {
             if (serverPeer == null) yield break;
 
+            // Send IK
             NetDataWriter writer = new NetDataWriter();
             netPacketProcessor.Write(writer, senderPacketData);
-
             serverPeer.Send(writer);
 
             // Send params
-            if (senderPlayerData.parameters.Count == 0)
+            var paramCount = (short)senderPlayerData.parameters.Count;
+            if (paramCount == 0)
                 yield break;
 
             var byteIndex = 0;
+            var paramData = senderParamData.paramData;
+            var paramCountBytes = new Serializers.ShortBytesUnion(paramCount);
+            paramData[byteIndex++] = paramCountBytes.byte0;
+            paramData[byteIndex++] = paramCountBytes.byte1;
             foreach (var parameter in senderPlayerData.parameters)
             {
                 var type = parameter.field_Public_ParameterType_0;
-                senderParamData.paramData[byteIndex++] = (byte)type;
+                if (floatPrecision && type == AvatarParameter.ParameterType.Float)
+                    type = (AvatarParameter.ParameterType)10; // 2 byte float
+
+                paramData[byteIndex++] = (byte)type;
                 switch (type)
                 {
                     case AvatarParameter.ParameterType.Bool:
-                        senderParamData.paramData[byteIndex++] = Convert.ToByte(parameter.field_Private_Boolean_0);
+                        paramData[byteIndex++] = Convert.ToByte(parameter.field_Private_Boolean_0);
                         break;
 
                     case AvatarParameter.ParameterType.Int:
-                        senderParamData.paramData[byteIndex++] = (byte)parameter.field_Private_Int32_1;
+                        paramData[byteIndex++] = (byte)parameter.field_Private_Int32_1;
                         break;
 
                     case AvatarParameter.ParameterType.Float:
-                        senderParamData.paramData[byteIndex++] = Serializers.SerializeFloat(parameter.field_Private_Single_0);
+                        paramData[byteIndex++] = Serializers.SerializeFloat(parameter.field_Private_Single_0);
+                        break;
+
+                    case (AvatarParameter.ParameterType)10:
+                        Serializers.SerializeFloatAsShortBytes(ref paramData, ref byteIndex, parameter.field_Private_Single_0);
                         break;
                 }
             }
             senderParamData.photonId = currentPhotonId;
+            senderParamData.paramData = paramData;
 
             writer.Reset();
             netPacketProcessor.Write(writer, senderParamData);
-
             serverPeer.Send(writer);
         }
 

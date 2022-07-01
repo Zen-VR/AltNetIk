@@ -192,6 +192,7 @@ namespace AltNetIk
                 }
             }
             var paramIndex = 0;
+            short floatParamCount = 0;
             senderParamData = new ParamData();
             if (avatarParams != null)
             {
@@ -204,13 +205,18 @@ namespace AltNetIk
                     if (paramIndex > 20 && !expressionParameters.Contains(parameterName)) // keep only defaults and expression parameters
                         continue;
 
+                    if (param.field_Public_ParameterType_0 == AvatarParameter.ParameterType.Float)
+                        floatParamCount++;
+
                     parameters.Add(param);
                 }
-                senderParamData = new ParamData
-                {
-                    photonId = photonId,
-                    paramData = new byte[parameters.Count * 2]
-                };
+                senderParamData.photonId = photonId;
+
+                int paramBytesLength = (parameters.Count * 2) + 2;
+                if (floatPrecision)
+                    paramBytesLength += floatParamCount;
+
+                senderParamData.paramData = new byte[paramBytesLength];
             }
 
             senderPacketData = new PacketData();
@@ -242,6 +248,7 @@ namespace AltNetIk
                     boneCount = boneCount,
                     boneList = boneList,
                     parameters = parameters,
+                    floatParamCount = floatParamCount,
                     avatarKind = avatarKind,
                     isSdk2 = isSdk2
                 };
@@ -295,6 +302,7 @@ namespace AltNetIk
                 boneCount = boneCount,
                 boneList = boneList,
                 parameters = parameters,
+                floatParamCount = floatParamCount,
                 avatarKind = avatarKind,
                 isSdk2 = isSdk2
             };
