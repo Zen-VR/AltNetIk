@@ -60,6 +60,7 @@ namespace AltNetIk
         public static bool namePlates;
         private string serverIP;
         private int serverPort;
+        private bool floatPrecision;
         private Int64 lastUpdate;
         private Int64 ReconnectTimer;
         private Int64 ReconnectLastAttempt;
@@ -115,11 +116,13 @@ namespace AltNetIk
             MelonPreferences.CreateEntry(ModID, "EnableLerp", true, "Receiver interpolation");
             MelonPreferences.CreateEntry(ModID, "ServerIP", "", "Server IP");
             MelonPreferences.CreateEntry(ModID, "ServerPort", 9052, "Server Port");
+            MelonPreferences.CreateEntry(ModID, "FloatPrecision", true, "Avatar parameter float precision");
             autoConnect = MelonPreferences.GetEntryValue<bool>(ModID, "ServerAutoConnect");
             namePlates = MelonPreferences.GetEntryValue<bool>(ModID, "NamePlates");
             enableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "EnableLerp");
             serverIP = MelonPreferences.GetEntryValue<string>(ModID, "ServerIP");
             serverPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
+            floatPrecision = MelonPreferences.GetEntryValue<bool>(ModID, "FloatPrecision");
 
             if (!MelonHandler.Mods.Any(m => m.Info.Name == "TabExtension"))
                 Logger.Warning("TabExtension is missing, to fix broken quick menu tabs install it from here: https://github.com/DragonPlayerX/TabExtension/releases/latest");
@@ -198,6 +201,7 @@ namespace AltNetIk
             Buttons.UpdateToggleState("AutoConnect", autoConnect);
             var newServerIP = MelonPreferences.GetEntryValue<string>(ModID, "ServerIP");
             var newServerPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
+            var newfloatPrecision = MelonPreferences.GetEntryValue<bool>(ModID, "FloatPrecision");
             if (newServerIP != serverIP || newServerPort != serverPort)
             {
                 serverIP = newServerIP;
@@ -207,6 +211,16 @@ namespace AltNetIk
                     Disconnect();
                     MelonCoroutines.Start(Connect());
                 }
+            }
+            if (newfloatPrecision != floatPrecision)
+            {
+                int paramCount = senderPlayerData.parameters.Count;
+                int paramBytesLength = (paramCount * 2) + 2;
+                if (newfloatPrecision)
+                    paramBytesLength += senderPlayerData.floatParamCount;
+
+                senderParamData.paramData = new byte[paramBytesLength];
+                floatPrecision = newfloatPrecision;
             }
         }
 

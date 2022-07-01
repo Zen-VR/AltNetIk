@@ -225,7 +225,10 @@ namespace AltNetIk
                 if (!hasPlayerData || playerData.parameters.Count < 19) // 20 total default params -1 for IsLocal equals 19
                     return;
 
-                var paramCount = packet.paramData.Length / 2;
+                var byteIndex = 0;
+                var byte0 = packet.paramData[byteIndex++];
+                var byte1 = packet.paramData[byteIndex++];
+                var paramCount = new Serializers.ShortBytesUnion(byte0, byte1).value;
                 if (paramCount < 19)
                     return;
 
@@ -233,7 +236,6 @@ namespace AltNetIk
                 if (playerData.parameters.Count != paramCount)
                     isFallback = true;
 
-                var byteIndex = 0;
                 for (int i = 0; i < paramCount; i++)
                 {
                     if (isFallback && i > 18) // Only apply 19 default parameters to fallback avatars
@@ -242,33 +244,45 @@ namespace AltNetIk
                     var parameter = playerData.parameters[i];
                     var type = parameter.field_Public_ParameterType_0;
                     var senderType = (AvatarParameter.ParameterType)packet.paramData[byteIndex++];
-                    var senderParam = packet.paramData[byteIndex++];
-                    if (type != senderType)
-                        return;
 
-                    switch (type)
+                    switch (senderType)
                     {
                         case AvatarParameter.ParameterType.Bool:
-                            BoolPropertySetter(parameter.Pointer, senderParam != 0);
+                            if (type != senderType)
+                                return;
+                            var boolParam = packet.paramData[byteIndex++] != 0;
+                            BoolPropertySetter(parameter.Pointer, boolParam);
                             break;
 
                         case AvatarParameter.ParameterType.Int:
-                            IntPropertySetter(parameter.Pointer, senderParam);
+                            if (type != senderType)
+                                return;
+                            var intParam = packet.paramData[byteIndex++];
+                            IntPropertySetter(parameter.Pointer, intParam);
+
+                            // Fix avatar limb grabber
+                            if (i == 2) // GestureLeft
+                                playerData.playerHandGestureController.field_Private_Gesture_0 = (HandGestureController.Gesture)intParam;
+                            else if (i == 4) // GestureRight
+                                playerData.playerHandGestureController.field_Private_Gesture_2 = (HandGestureController.Gesture)intParam;
                             break;
 
                         case AvatarParameter.ParameterType.Float:
-                            FloatPropertySetter(parameter.Pointer, Serializers.DeserializeFloat(senderParam));
+                            if (type != senderType)
+                                return;
+                            var floatParam = Serializers.DeserializeFloat(packet.paramData[byteIndex++]);
+                            FloatPropertySetter(parameter.Pointer, floatParam);
                             break;
-                    }
 
-                    // Fix avatar limb grabber
-                    if (i == 2) // GestureLeft
-                    {
-                        playerData.playerHandGestureController.field_Private_Gesture_0 = (HandGestureController.Gesture)senderParam;
-                    }
-                    else if (i == 4) // GestureRight
-                    {
-                        playerData.playerHandGestureController.field_Private_Gesture_2 = (HandGestureController.Gesture)senderParam;
+                        case (AvatarParameter.ParameterType)10:
+                            if (type != AvatarParameter.ParameterType.Float)
+                                return;
+
+                            var b0 = packet.paramData[byteIndex++];
+                            var b1 = packet.paramData[byteIndex++];
+                            var precisionFloatParam = Serializers.DeserializeFloatFromShortBytes(b0, b1);
+                            FloatPropertySetter(parameter.Pointer, precisionFloatParam);
+                            break;
                     }
                 }
             }

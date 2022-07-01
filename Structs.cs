@@ -42,6 +42,7 @@ namespace AltNetIk
             public int boneCount;
             public bool[] boneList;
             public List<AvatarParameter> parameters;
+            public short floatParamCount;
             public bool active;
             public bool isSdk2;
         }

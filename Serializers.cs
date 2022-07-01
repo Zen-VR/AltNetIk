@@ -1,6 +1,7 @@
 ﻿using LiteNetLib.Utils;
 using System.Numerics;
 using System;
+using System.Runtime.InteropServices;
 
 namespace AltNetIk
 {
@@ -132,18 +133,7 @@ namespace AltNetIk
             return bools;
         }
 
-        private static float ClampFloat(float val)
-        {
-            if (val < -1.0f)
-            {
-                val = -1.0f;
-            }
-            if (val > 1.0f)
-            {
-                val = 1.0f;
-            }
-            return val;
-        }
+        private static float ClampFloat(float value) => value < -1f ? -1f : value > 1f ? 1f : value;
 
         /// <summary>
         /// Serializes a float how VRChat would normally for their parameters
@@ -164,6 +154,42 @@ namespace AltNetIk
         {
             float value = ((sbyte)rawByte) / 127.0f;
             return ClampFloat(value);
+        }
+
+        public static void SerializeFloatAsShortBytes(ref byte[] bytes, ref int index, float value)
+        {
+            value = ClampFloat(value);
+            value *= 32767.0f;
+            value = (float)Math.Round(value);
+            var union = new ShortBytesUnion((short)value);
+            bytes[index++] = union.byte0;
+            bytes[index++] = union.byte1;
+        }
+
+        public static float DeserializeFloatFromShortBytes(byte b0, byte b1)
+        {
+            var union = new ShortBytesUnion(b0, b1);
+            float value = union.value / 32767.0f;
+            return ClampFloat(value);
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        public struct ShortBytesUnion
+        {
+            [FieldOffset(0)] public short value;
+            [FieldOffset(0)] public byte byte0;
+            [FieldOffset(1)] public byte byte1;
+
+            public ShortBytesUnion(short input) : this()
+            {
+                value = input;
+            }
+
+            public ShortBytesUnion(byte b0, byte b1) : this()
+            {
+                byte0 = b0;
+                byte1 = b1;
+            }
         }
     }
 }
