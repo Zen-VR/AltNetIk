@@ -59,7 +59,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="LiteNetLib">
-      <HintPath>.\LiteNetLib.dll</HintPath>
+      <HintPath>LiteNetLib\LiteNetLib\bin\Release\net471\LiteNetLib.dll</HintPath>
     </Reference>
     <Reference Include="MelonLoader">
       <HintPath>S:\Games\steamapps\common\VRChat\MelonLoader\MelonLoader.dll</HintPath>
