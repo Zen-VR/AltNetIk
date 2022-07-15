@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReMod.Core", "ReMod.Core\Re
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltNetIkServer", "Server\AltNetIkServer.csproj", "{DC730F11-0E71-47A6-B5D5-DD141942CA57}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LiteNetLib", "LiteNetLib\LiteNetLib\LiteNetLib.csproj", "{55C64DD0-3B99-4771-87C4-93BE1BB87581}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{DC730F11-0E71-47A6-B5D5-DD141942CA57}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC730F11-0E71-47A6-B5D5-DD141942CA57}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC730F11-0E71-47A6-B5D5-DD141942CA57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55C64DD0-3B99-4771-87C4-93BE1BB87581}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55C64DD0-3B99-4771-87C4-93BE1BB87581}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55C64DD0-3B99-4771-87C4-93BE1BB87581}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55C64DD0-3B99-4771-87C4-93BE1BB87581}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
