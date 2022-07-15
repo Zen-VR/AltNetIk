@@ -13,9 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="LiteNetLib">
-      <HintPath>..\LiteNetLib\LiteNetLib\bin\Release\net6.0\LiteNetLib.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\LiteNetLib\LiteNetLib\LiteNetLib.csproj" />
   </ItemGroup>
 
 </Project>

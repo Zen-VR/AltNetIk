@@ -58,9 +58,6 @@
       <HintPath>..\..\..\..\SteamLibrary\steamapps\common\VRChat\MelonLoader\Managed\Il2CppSystem.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="LiteNetLib">
-      <HintPath>LiteNetLib\LiteNetLib\bin\Release\net471\LiteNetLib.dll</HintPath>
-    </Reference>
     <Reference Include="MelonLoader">
       <HintPath>..\..\..\..\SteamLibrary\steamapps\common\VRChat\MelonLoader\MelonLoader.dll</HintPath>
       <Private>False</Private>
@@ -164,6 +161,10 @@
     <EmbeddedResource Include="Resources\Logo.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="LiteNetLib\LiteNetLib\LiteNetLib.csproj">
+      <Project>{55c64dd0-3b99-4771-87c4-93be1bb87581}</Project>
+      <Name>LiteNetLib</Name>
+    </ProjectReference>
     <ProjectReference Include="ReMod.Core\ReMod.Core.csproj">
       <Project>{c87fe758-acb9-4fa2-af6f-10aa9aa0023c}</Project>
       <Name>ReMod.Core</Name>
