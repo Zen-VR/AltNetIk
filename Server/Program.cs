@@ -30,13 +30,45 @@ namespace AltNetIk
         private static readonly Dictionary<int, LobbyUser> players = new Dictionary<int, LobbyUser>();
         private static readonly Dictionary<string, Dictionary<int, LobbyUser>> instances = new Dictionary<string, Dictionary<int, LobbyUser>>();
         public static readonly NetPacketProcessor netPacketProcessor = new NetPacketProcessor();
-        public static readonly StreamWriter logFile = File.AppendText("EventLog.log");
+        public static StreamWriter? logFile = null;
         private static bool _running;
         private static bool _consoleLogging = true;
+        private static bool _fileLogging = true;
         private static readonly Stopwatch _stopWatch = new Stopwatch();
 
         private static void Main(string[] args)
         {
+            foreach (var arg in args.Where((arg) => arg.StartsWith("--")))
+            {
+                var parts = arg.Split("=");
+
+                if (parts.Length == 2) {
+                    switch (parts[0])
+                    {
+                        case "--file-logging":
+                            _fileLogging = Boolean.Parse(parts[1]);
+                            break;
+                        case "--console-logging":
+                            _consoleLogging = Boolean.Parse(parts[1]);
+                            break;
+                    }
+                } else {
+                    switch (parts[0])
+                    {
+                        case "--help":
+                            Console.WriteLine($"Description:\n" +
+                                "  Alternative network IK mod for VRChat\n\n" +
+                                "Usage:\n" +
+                                "  dotnet AltNetIkServer.dll\n [options]\n\n" +
+                                "Options:\n" +
+                                "  --file-logging=<true|false>       Enables / disables file loging. Defaults to true.\n" +
+                                "  --console-logging=<true|false>    Enables / disables console loging. Defaults to true.\n" +
+                                "  --help                            Show command line help.");
+                            return;
+                    }
+                }
+            }
+
             EventBasedNetListener listener = new EventBasedNetListener();
             NetManager Server = new NetManager(listener);
             Server.Start(9052);
@@ -399,6 +431,13 @@ namespace AltNetIk
 
         public static void LogEntry(string msg)
         {
+            if (!_fileLogging) {
+                return;
+            }
+            if (logFile == null) {
+                logFile = File.AppendText("EventLog.log");
+            }
+
             string line = $"[{GetDateTime()}] {msg}";
             if (_consoleLogging)
                 Console.WriteLine(line);
