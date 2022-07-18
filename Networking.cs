@@ -11,7 +11,7 @@ namespace AltNetIk
     {
         private IEnumerator Connect()
         {
-            if (String.IsNullOrEmpty(serverIP))
+            if (String.IsNullOrEmpty(currentServerIP))
                 yield break;
 
             try
@@ -20,12 +20,12 @@ namespace AltNetIk
                 client = new NetManager(listener);
 
                 client.Start();
-                client.Connect(serverIP, serverPort, "AltNetIk");
+                client.Connect(currentServerIP, currentServerPort, "AltNetIk");
 
                 listener.NetworkReceiveEvent += OnNetworkReceive;
                 listener.PeerConnectedEvent += OnPeerConnected;
                 listener.PeerDisconnectedEvent += OnPeerDisconnected;
-                
+
                 UpdateAllButtons();
             }
             catch (Exception e)
@@ -33,6 +33,7 @@ namespace AltNetIk
                 Logger.Msg("Connection Error: " + e);
                 DisconnectSilent();
             }
+            yield break;
         }
 
         private void OnNetworkReceive(NetPeer peer, NetPacketReader reader, byte channel, DeliveryMethod deliveryMethod)
@@ -71,8 +72,6 @@ namespace AltNetIk
             }
 
             Logger.Msg(ConsoleColor.Red, message);
-            NotificationSystem.EnqueueNotification("AltNetIk", message);
-
             DisconnectSilent();
         }
 
@@ -97,9 +96,13 @@ namespace AltNetIk
         {
             ReconnectLastAttempt = 0;
             if (IsConnected)
+            {
                 Disconnect();
+            }
             else
-                MelonCoroutines.Start(Connect());
+            {
+                NegotiateServer();
+            }
         }
 
         private void DisconnectSilent()

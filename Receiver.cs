@@ -307,6 +307,11 @@ namespace AltNetIk
                     DisableReceiver(packet.photonId);
                     break;
 
+                case "RenegotiateServer":
+                    if (currentPhotonId != 0)
+                        NegotiateServer();
+                    break;
+
                 case "Message":
                     NotificationSystem.EnqueueNotification("AltNetIk", packet.data);
                     Logger.Warning($"Server message: {packet.data}");
