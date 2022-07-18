@@ -78,5 +78,21 @@ namespace AltNetIk
             public Vector3 playerPosition;
             public Quaternion playerRotation;
         }
+
+        public struct ConnectRequest
+        {
+            public int photonId;
+            public string photonServer;
+            public string instanceHash;
+            public string instanceRegion;
+        }
+
+        public struct ConnectResponse
+        {
+            public string action;
+            public string message;
+            public string ip;
+            public int port;
+        }
     }
 }

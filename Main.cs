@@ -1,12 +1,14 @@
-using LiteNetLib;
+﻿using LiteNetLib;
 using LiteNetLib.Utils;
 using MelonLoader;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -40,7 +42,8 @@ namespace AltNetIk
         private static Dictionary<int, NamePlateInfo> playerNamePlates = new Dictionary<int, NamePlateInfo>();
 
         private string currentInstanceIdHash;
-        private int currentPhotonId = 0;
+        private string currentInstanceRegion;
+        private int currentPhotonId;
 
         private static ConcurrentDictionary<int, ReceiverPacketData> receiverPacketData = new ConcurrentDictionary<int, ReceiverPacketData>();
         private ConcurrentDictionary<int, DataBank> receiverLastPacket = new ConcurrentDictionary<int, DataBank>();
@@ -58,8 +61,11 @@ namespace AltNetIk
         private bool _streamSafe;
         public static bool enableLerp;
         public static bool namePlates;
+        public static bool customServer;
         private string serverIP;
         private int serverPort;
+        private string currentServerIP;
+        private int currentServerPort;
         private bool floatPrecision;
         private Int64 lastUpdate;
         private Int64 ReconnectTimer;
@@ -114,12 +120,14 @@ namespace AltNetIk
             MelonPreferences.CreateEntry(ModID, "ServerAutoConnect", true, "Auto connect on startup");
             MelonPreferences.CreateEntry(ModID, "NamePlates", true, "Nameplate stats");
             MelonPreferences.CreateEntry(ModID, "EnableLerp", true, "Receiver interpolation");
-            MelonPreferences.CreateEntry(ModID, "ServerIP", "", "Server IP");
-            MelonPreferences.CreateEntry(ModID, "ServerPort", 9052, "Server Port");
+            MelonPreferences.CreateEntry(ModID, "CustomServer", false, "Enable custom server");
+            MelonPreferences.CreateEntry(ModID, "ServerIP", "", "Custom server IP");
+            MelonPreferences.CreateEntry(ModID, "ServerPort", 9052, "Custom server Port");
             MelonPreferences.CreateEntry(ModID, "FloatPrecision", true, "Avatar parameter float precision");
             autoConnect = MelonPreferences.GetEntryValue<bool>(ModID, "ServerAutoConnect");
             namePlates = MelonPreferences.GetEntryValue<bool>(ModID, "NamePlates");
             enableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "EnableLerp");
+            customServer = MelonPreferences.GetEntryValue<bool>(ModID, "CustomServer");
             serverIP = MelonPreferences.GetEntryValue<string>(ModID, "ServerIP");
             serverPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
             floatPrecision = MelonPreferences.GetEntryValue<bool>(ModID, "FloatPrecision");
@@ -131,7 +139,15 @@ namespace AltNetIk
 
             var ReModCoreUpdaterPath = Path.Combine(MelonUtils.GetGameDataDirectory(), "../Plugins/ReMod.Core.Updater.dll");
             if (!File.Exists(ReModCoreUpdaterPath))
-                ReMod_Core_Downloader.LoadReModCore();
+            {
+                Logger.Error("ReMod.Core.Updater.dll is missing, it's required to use this mod.");
+                using (var client = new WebClient())
+                {
+                    client.DownloadFile("https://api.vrcmg.com/v1/mods/download/328", ReModCoreUpdaterPath);
+                }
+                Logger.Warning("ReMod.Core.Updater.dll has been downloaded into the plugins folder, please restart your game to load this mod.");
+                return;
+            }
 
             netPacketProcessor.RegisterNestedType<System.Numerics.Quaternion>(Serializers.SerializeQuaternion, Serializers.DeserializeQuaternion);
             netPacketProcessor.RegisterNestedType<System.Numerics.Vector3>(Serializers.SerializeVector3, Serializers.DeserializeVector3);
@@ -167,9 +183,6 @@ namespace AltNetIk
 
             Patches.DoPatches();
             Buttons.SetupButtons();
-
-            if (autoConnect)
-                MelonCoroutines.Start(Connect());
         }
 
         public override void OnUpdate()
@@ -196,31 +209,39 @@ namespace AltNetIk
             autoConnect = MelonPreferences.GetEntryValue<bool>(ModID, "ServerAutoConnect");
             namePlates = MelonPreferences.GetEntryValue<bool>(ModID, "NamePlates");
             enableLerp = MelonPreferences.GetEntryValue<bool>(ModID, "EnableLerp");
+
+            var newServerIP = MelonPreferences.GetEntryValue<string>(ModID, "ServerIP");
+            var newServerPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
+            var newFloatPrecision = MelonPreferences.GetEntryValue<bool>(ModID, "FloatPrecision");
+            var newCustomServer = MelonPreferences.GetEntryValue<bool>(ModID, "CustomServer");
+
             Buttons.UpdateToggleState("NameplateStats", namePlates);
             Buttons.UpdateToggleState("EnableLerp", enableLerp);
             Buttons.UpdateToggleState("AutoConnect", autoConnect);
-            var newServerIP = MelonPreferences.GetEntryValue<string>(ModID, "ServerIP");
-            var newServerPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
-            var newfloatPrecision = MelonPreferences.GetEntryValue<bool>(ModID, "FloatPrecision");
-            if (newServerIP != serverIP || newServerPort != serverPort)
+            Buttons.UpdateToggleState("CustomServer", newCustomServer);
+
+            if (newCustomServer != customServer || newServerIP != serverIP || newServerPort != serverPort)
             {
                 serverIP = newServerIP;
                 serverPort = newServerPort;
+                customServer = newCustomServer;
                 if (IsConnected)
                 {
+                    // reconnect to apply new settings
                     Disconnect();
                     MelonCoroutines.Start(Connect());
                 }
             }
-            if (newfloatPrecision != floatPrecision)
+
+            if (newFloatPrecision != floatPrecision)
             {
                 int paramCount = senderPlayerData.parameters.Count;
                 int paramBytesLength = (paramCount * 2) + 2;
-                if (newfloatPrecision)
+                if (newFloatPrecision)
                     paramBytesLength += senderPlayerData.floatParamCount;
 
                 senderParamData.paramData = new byte[paramBytesLength];
-                floatPrecision = newfloatPrecision;
+                floatPrecision = newFloatPrecision;
             }
         }
 
@@ -253,20 +274,116 @@ namespace AltNetIk
             Buttons.UpdateAllButtons();
         }
 
-        public void OnInstanceChanged(ApiWorld world, ApiWorldInstance instance)
+        public void OnPhotonInstanceChanged()
         {
+            //Regex regex = new Regex(@".*~region\((.*?)\)");
+            //Match match = regex.Match(instance.id);
+            //var instanceRegion = "us";
+            //if (match.Success)
+            //    instanceRegion = match.Groups[1].Value;
             ResetInstance();
-
-            IsSending = false;
-            string instanceId = $"{world.id}:{instance.id}";
+            var photonServerIP = VRCNetworkingClient.field_Internal_Static_VRCNetworkingClient_0.field_Private_String_3;
+            var worldId = RoomManager.field_Internal_Static_ApiWorldInstance_0.id;
+            var region = RoomManager.field_Internal_Static_ApiWorldInstance_0.region;
+            var instanceId = $"{worldId}:{photonServerIP}";
             HashAlgorithm algorithm = new MD5CryptoServiceProvider();
             byte[] hash = algorithm.ComputeHash(Encoding.UTF8.GetBytes(instanceId));
-            currentInstanceIdHash = Convert.ToBase64String(hash);
+            currentInstanceRegion = region.ToString();
+            currentInstanceIdHash = $"{currentInstanceRegion}-{Convert.ToBase64String(hash)}";
+
+            if (!autoConnect)
+                return;
+
+            if (customServer)
+            {
+                if (!IsConnected)
+                    MelonCoroutines.Start(Connect());
+            }
+            else
+            {
+                NegotiateServer();
+            }
+        }
+
+        public void NegotiateServer()
+        {
+            var photonServerIP = VRCNetworkingClient.field_Internal_Static_VRCNetworkingClient_0.field_Private_String_3;
+            var newServerIP = currentServerIP;
+            var newServerPort = currentServerPort;
+            var connectRequest = new ConnectRequest
+            {
+                photonId = currentPhotonId,
+                photonServer = photonServerIP,
+                instanceRegion = currentInstanceRegion,
+                instanceHash = currentInstanceIdHash
+            };
+            var json = JsonConvert.SerializeObject(connectRequest);
+            try
+            {
+                using var client = new WebClient();
+                client.Headers.Add("user-agent", $"{BuildInfo.Name} {BuildInfo.Version}");
+                client.Headers.Add("Content-Type", "application/json");
+                string response = client.UploadString("https://altnetik.dev/connect", WebRequestMethods.Http.Put, json);
+                var connectResponse = JsonConvert.DeserializeObject<ConnectResponse>(response);
+                if (connectResponse.action == "Error")
+                {
+                    Logger.Error(connectResponse.message);
+                    if (IsConnected)
+                    {
+                        ReconnectLastAttempt = 0;
+                        DisconnectSilent();
+                    }
+                    return;
+                }
+                else if (!String.IsNullOrEmpty(connectResponse.message))
+                {
+                    Logger.Msg(connectResponse.message);
+                }
+                newServerIP = connectResponse.ip;
+                newServerPort = connectResponse.port;
+            }
+            catch (WebException ex)
+            {
+                HttpWebResponse response = (HttpWebResponse)ex.Response;
+                Logger.Error($"Error: {response.StatusCode}, failed to contact AltNetIk API server.");
+                if (IsConnected)
+                {
+                    ReconnectLastAttempt = 0;
+                    DisconnectSilent();
+                }
+                return;
+            }
+            catch
+            {
+                Logger.Error("Failed to contact AltNetIk API server.");
+                if (IsConnected)
+                {
+                    ReconnectLastAttempt = 0;
+                    DisconnectSilent();
+                }
+                return;
+            }
+
+            if (newServerIP != currentServerIP || newServerPort != currentServerPort)
+            {
+                currentServerIP = newServerIP;
+                currentServerPort = newServerPort;
+                // reconnect to apply new settings
+                if (IsConnected)
+                {
+                    ReconnectLastAttempt = 0;
+                    DisconnectSilent();
+                }
+            }
+            if (!IsConnected)
+                MelonCoroutines.Start(Connect());
         }
 
         public void ResetInstance()
         {
+            IsSending = false;
             currentInstanceIdHash = String.Empty;
+            currentInstanceRegion = String.Empty;
             currentPhotonId = 0;
             receiverPacketData.Clear();
             receiverLastPacket.Clear();

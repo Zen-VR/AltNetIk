@@ -58,11 +58,16 @@ namespace AltNetIk
                 AltNetIk.namePlates = state;
                 MelonPreferences.SetEntryValue(AltNetIk.ModID, "NamePlates", state);
             }, AltNetIk.namePlates);
-            toggles["AutoConnect"] = menu.AddToggle("Auto Connect", "Automatically connect to the AltNetIk server.", (state) =>
+            toggles["AutoConnect"] = menu.AddToggle("Auto Connect", "Automatically connect to AltNetIk server.", (state) =>
             {
                 AltNetIk.autoConnect = state;
                 MelonPreferences.SetEntryValue(AltNetIk.ModID, "ServerAutoConnect", state);
             }, AltNetIk.autoConnect);
+            toggles["CustomServer"] = menu.AddToggle("Enable Custom Server", "Connect to server specified in mod settings.", (state) =>
+            {
+                MelonPreferences.SetEntryValue(AltNetIk.ModID, "CustomServer", state);
+                AltNetIk.Instance.OnPreferencesSaved();
+            }, AltNetIk.customServer);
         }
 
         public static void UpdatePing()

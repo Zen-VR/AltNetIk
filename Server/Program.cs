@@ -6,7 +6,7 @@ namespace AltNetIk
 {
     public static class Server
     {
-        public const string version = "1.8.0";
+        public const string version = "1.8.2";
         public static readonly short versionNum = short.Parse(version[..version.LastIndexOf('.')].Replace(".", "")); // 1.3.0 -> 13
 
         public class LobbyUser
@@ -55,6 +55,11 @@ namespace AltNetIk
             listener.PeerConnectedEvent += peer =>
             {
                 LogEntry($"Peer connected: {peer.EndPoint}");
+                if (players.ContainsKey(peer.Id))
+                {
+                    LogEntry($"Dupe peer! {peer.Id} {peer.EndPoint}");
+                    return;
+                }
                 players.Add(peer.Id, new LobbyUser(peer));
             };
 
@@ -96,12 +101,12 @@ namespace AltNetIk
             {
                 try
                 {
-                    //if (dataReader.RawDataSize > 1500)
-                    //{
-                    //    LogEntry($"Kicked for packet size larger than 1500 bytes {fromPeer.EndPoint}");
-                    //    fromPeer.Disconnect();
-                    //    return;
-                    //}
+                    if (dataReader.RawDataSize > 2000)
+                    {
+                        LogEntry($"Kicked for packet size larger than 2000 bytes {fromPeer.EndPoint}");
+                        fromPeer.Disconnect();
+                        return;
+                    }
                     netPacketProcessor.ReadAllPackets(dataReader, fromPeer);
                     dataReader.Recycle();
                 }
@@ -161,7 +166,8 @@ namespace AltNetIk
                         "plist: player list\n" +
                         "ilist: instance list\n" +
                         "msgAll <message>: message everyone\n" +
-                        "msgInstance <message>: message instance\n");
+                        "msgInstance <message>: message instance\n" +
+                        "renegotiateServer: contact API to find a new server\n");
                         break;
 
                     case "stop":
@@ -178,6 +184,10 @@ namespace AltNetIk
 
                     case "ilist":
                         InstanceList();
+                        break;
+
+                    case "renegotiateServer":
+                        RenegotiateServer();
                         break;
 
                     case "logging":
@@ -285,7 +295,7 @@ namespace AltNetIk
 
             if (packet.version != versionNum)
             {
-                string message = $"Version mismatch: {packet.version}/{versionNum} please update mod/server to latest version";
+                string message = $"Version mismatch, mod:{packet.version} server:{versionNum} please update mod/server to latest version";
                 LogEntry($"{message} {peer.EndPoint}");
                 NetDataWriter writer = new NetDataWriter();
                 writer.Put(message);
@@ -320,10 +330,9 @@ namespace AltNetIk
                             // Check for any existing user with same photonId
                             foreach (LobbyUser player in instances[packet.lobbyHash].Values)
                             {
-                                if (player.photonId == packet.photonId && player.peer.EndPoint.Address != peer.EndPoint.Address)
+                                if (player.photonId == packet.photonId && player.peer.EndPoint.Address.ToString() != peer.EndPoint.Address.ToString())
                                 {
-                                    LogEntry($"Kicked for duplicate photonId, Instance: {packet.lobbyHash} PhotonId: {player.photonId} Current: {player.peer.EndPoint.Address}/{player.peer.EndPoint} Joining: {peer.EndPoint.Address}/{peer.EndPoint}");
-                                    // addresses somehow not matching, null check maybe?
+                                    LogEntry($"Kicked for duplicate photonId, Instance: {packet.lobbyHash} PhotonId: {player.photonId} Current: {player.peer.EndPoint} Joining: {peer.EndPoint}");
                                     peer.Disconnect();
                                     return;
                                 }
@@ -427,6 +436,20 @@ namespace AltNetIk
             foreach (KeyValuePair<string, Dictionary<int, LobbyUser>> lobby in instances.OrderByDescending(x => x.Value.Count).ToList())
             {
                 Console.WriteLine($"{lobby.Key} {lobby.Value.Count}");
+            }
+        }
+
+        public static void RenegotiateServer()
+        {
+            NetDataWriter writer = new NetDataWriter();
+            EventData eventData = new EventData
+            {
+                eventName = "RenegotiateServer"
+            };
+            netPacketProcessor.Write(writer, eventData);
+            foreach (LobbyUser player in players.Values)
+            {
+                player.peer.Send(writer, DeliveryMethod.ReliableOrdered);
             }
         }
 

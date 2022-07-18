@@ -1,4 +1,5 @@
 using HarmonyLib;
+using Photon.Realtime;
 using ReMod.Core;
 using System;
 using System.Linq;
@@ -18,15 +19,15 @@ namespace AltNetIk
             // Patches stolen from Loukylor, knah, ImTiara and Requi
             AltNetIk.Instance.HarmonyInstance.Patch(typeof(VRCAvatarManager).GetMethods().First(mb => mb.Name.StartsWith("Method_Private_Boolean_GameObject_String_Single_")), null, new HarmonyMethod(typeof(Patches).GetMethod(nameof(OnAvatarInit), BindingFlags.NonPublic | BindingFlags.Static)));
             AltNetIk.Instance.HarmonyInstance.Patch(typeof(VRCPlayer).GetMethods().First(mb => mb.Name.StartsWith("Awake")), null, new HarmonyMethod(typeof(Patches).GetMethod(nameof(OnPlayerAwake), BindingFlags.NonPublic | BindingFlags.Static)));
-            AltNetIk.Instance.HarmonyInstance.Patch(typeof(RoomManager).GetMethods().Single(m => m.Name.StartsWith("Method_Public_Static_Boolean_ApiWorld_ApiWorldInstance_String_Int32_") && XrefUtils.CheckMethod(m, "Successfully joined room")), null, new HarmonyMethod(typeof(Patches).GetMethod(nameof(OnInstanceChange), BindingFlags.NonPublic | BindingFlags.Static)));
             AltNetIk.Instance.HarmonyInstance.Patch(typeof(NetworkManager).GetMethod("OnLeftRoom"), new HarmonyMethod(typeof(Patches).GetMethod(nameof(OnRoomLeave), BindingFlags.NonPublic | BindingFlags.Static)));
             AltNetIk.Instance.HarmonyInstance.Patch(typeof(PipelineManager).GetMethod(nameof(PipelineManager.Start)), null, new HarmonyMethod(typeof(Patches).GetMethod(nameof(OnAvatarChanged), BindingFlags.NonPublic | BindingFlags.Static)));
             AltNetIk.Instance.HarmonyInstance.Patch(typeof(VRC.UI.Elements.QuickMenu).GetMethod(nameof(VRC.UI.Elements.QuickMenu.OnEnable)), new HarmonyMethod(typeof(Patches).GetMethod(nameof(OnQuickMenuOpen), BindingFlags.NonPublic | BindingFlags.Static)));
+            AltNetIk.Instance.HarmonyInstance.Patch(typeof(LoadBalancingClient).GetMethods().Single(m => m.Name.StartsWith("Method_Private_Void_OperationResponse_") && XrefUtils.CheckUsing(m, "OnCreatedRoom")), null, new HarmonyMethod(typeof(Patches).GetMethod(nameof(OnPhotonInstanceChanged), BindingFlags.NonPublic | BindingFlags.Static)));
 
             var field0 = NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_Player_0;
             var field1 = NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_Player_1;
-            field0.field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<Player>((player) => { if (player != null) AltNetIk.Instance.OnPlayerJoined(player); }));
-            field1.field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<Player>((player) => { if (player != null) AltNetIk.Instance.OnPlayerLeft(player); }));
+            field0.field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<VRC.Player>((player) => { if (player != null) AltNetIk.Instance.OnPlayerJoined(player); }));
+            field1.field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<VRC.Player>((player) => { if (player != null) AltNetIk.Instance.OnPlayerLeft(player); }));
         }
 
         private static void OnAvatarInit(VRCAvatarManager __instance)
@@ -61,12 +62,9 @@ namespace AltNetIk
             AltNetIk.Instance.OnAvatarChange(avatarManager);
         }
 
-        private static void OnInstanceChange(ApiWorld __0, ApiWorldInstance __1)
+        private static void OnPhotonInstanceChanged()
         {
-            if (__0 == null || __1 == null)
-                return;
-
-            AltNetIk.Instance.OnInstanceChanged(__0, __1);
+            AltNetIk.Instance.OnPhotonInstanceChanged();
         }
 
         private static void OnRoomLeave()

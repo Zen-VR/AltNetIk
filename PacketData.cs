@@ -1,4 +1,4 @@
-using LiteNetLib.Utils;
+﻿using LiteNetLib.Utils;
 using System.Numerics;
 using System.Runtime.Serialization;
 
@@ -10,8 +10,10 @@ namespace AltNetIk
         public int ping { get; set; }
         public bool frozen { get; set; }
         public short avatarKind { get; set; }
+
         [IgnoreDataMember]
         public int boneCount => boneRotations.Length;
+
         public Vector3 hipPosition { get; set; }
         public Quaternion hipRotation { get; set; }
         public Vector3 playerPosition { get; set; }

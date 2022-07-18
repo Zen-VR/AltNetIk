@@ -5,16 +5,21 @@ VRChats IK update rate is about 6-20Hz this is quite slow with a lot of smoothin
 TLDR: Remote players look same as local, faster IK and avatar parameter update rates, lower ping/IK delay, a few of VRChats networked IK bugs fixed.
 
 #### Nameplate info:
+
+![nametag](https://user-images.githubusercontent.com/104001796/178959680-03c9455b-9d3f-4069-8b3f-51a16852c420.png)
+
 - Packets Per Second (PPS), the amount of IK updates you receive from a player per second (value will be close to their current FPS).
-- Ping (server round-trip time), the amount of delay in milliseconds it takes to send an update to the server and back.
+- Ping (server round-trip time), the amount of delay in milliseconds it takes to send data to the server and back.
+- 🔴 Timeout, user has stopped sending data to AltNetIk server.
+- 🟢 Loading, user is currently loading their own avatar.
 
 #### Known bugs:
+
 - When remote players calibrate/reset their avatar will become broken for a few seconds.
 - SDK2 avatars aren't supported.
 - Interpolation can cause single frames with broken player rotation, option to disable interpolation in settings.
-- Chairs and camera indicators are very shaky.
-- If you find any bugs that aren't listed here make an issue [here](https://github.com/Zen-VR/AltNetIk/issues) or send me a DM.
-
+- Camera indicators are very shaky.
+- If you find any bugs that aren't listed here make an issue [here](https://github.com/Zen-VR/AltNetIk/issues) or ask for help on the [VRCMG](https://discord.gg/7EQCmgrUnH) Discord server.
 
 #### Fixed VRChat bugs:
 
@@ -38,16 +43,15 @@ https://user-images.githubusercontent.com/104001796/164469569-9a0938ca-602c-4798
 
 - Distance and player count based IK update rate slow down.
 
-
 #### Hosting your own server:
 
-* Port forward UDP port `9052`, if you don't know how to port forward you can find the appropriate guide for your router [here](https://portforward.com/router.htm).
-* Download and extract latest server release [zip](https://github.com/Zen-VR/AltNetIk/releases/latest).
-    * On Windows run `AltNetIkServer.exe`.
-    * On Linux first install [.Net Core](https://docs.microsoft.com/dotnet/core/install/linux) from your package manager then run either `./start.sh` or `./AltNetIkServer`.
-
+- Port forward UDP port `9052`, if you don't know how to port forward you can find the appropriate guide for your router [here](https://portforward.com/router.htm).
+- Download and extract latest server release [zip](https://github.com/Zen-VR/AltNetIk/releases/latest).
+  - On Windows run `AltNetIkServer.exe`.
+  - On Linux first install [.Net Core](https://docs.microsoft.com/dotnet/core/install/linux) from your package manager then run either `./start.sh` or `./AltNetIkServer`.
 
 #### This project wouldn't have been possible without the help of these people
+
 [Zettai](https://github.com/ZettaiVR),
 [OptoCloud](https://github.com/OptoCloud),
 [Requi](https://github.com/RequiDev),

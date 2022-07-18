@@ -65,7 +65,13 @@ namespace AltNetIk
             // Send IK
             NetDataWriter writer = new NetDataWriter();
             netPacketProcessor.Write(writer, senderPacketData);
-            serverPeer.Send(writer);
+            serverPeer.Send(writer, DeliveryMethod.ReliableSequenced);
+            var maxMtu = serverPeer.GetMaxSinglePacketSize(DeliveryMethod.Sequenced);
+            if (writer.Length > maxMtu)
+                // split packet when MTU is too small
+                serverPeer.Send(writer, DeliveryMethod.ReliableOrdered);
+            else
+                serverPeer.Send(writer, DeliveryMethod.Sequenced);
 
             // Send params
             var paramCount = (short)senderPlayerData.parameters.Count;
@@ -108,7 +114,11 @@ namespace AltNetIk
 
             writer.Reset();
             netPacketProcessor.Write(writer, senderParamData);
-            serverPeer.Send(writer);
+            if (writer.Length > maxMtu)
+                // split packet when MTU is too small
+                serverPeer.Send(writer, DeliveryMethod.ReliableOrdered);
+            else
+                serverPeer.Send(writer, DeliveryMethod.Sequenced);
         }
 
         public IEnumerator SendLocationData()
