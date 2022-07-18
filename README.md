@@ -49,6 +49,9 @@ https://user-images.githubusercontent.com/104001796/164469569-9a0938ca-602c-4798
 - Download and extract latest server release [zip](https://github.com/Zen-VR/AltNetIk/releases/latest).
   - On Windows run `AltNetIkServer.exe`.
   - On Linux first install [.Net Core](https://docs.microsoft.com/dotnet/core/install/linux) from your package manager then run either `./start.sh` or `./AltNetIkServer`.
+- Launch parameters:
+  - `--file-logging=<true|false>` (Default value true).
+  - `--console-logging=<true|false>` (Default value true).
 
 #### This project wouldn't have been possible without the help of these people
 
