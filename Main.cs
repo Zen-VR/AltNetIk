@@ -2,6 +2,7 @@ using LiteNetLib;
 using LiteNetLib.Utils;
 using MelonLoader;
 using Newtonsoft.Json;
+using ReMod.Core.Notification;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -326,6 +327,7 @@ namespace AltNetIk
                 if (connectResponse.action == "Error")
                 {
                     Logger.Error(connectResponse.message);
+                    NotificationSystem.EnqueueNotification("AltNetIk", connectResponse.message);
                     if (IsConnected)
                     {
                         ReconnectLastAttempt = 0;
@@ -336,6 +338,7 @@ namespace AltNetIk
                 else if (!String.IsNullOrEmpty(connectResponse.message))
                 {
                     Logger.Msg(connectResponse.message);
+                    NotificationSystem.EnqueueNotification("AltNetIk", connectResponse.message);
                 }
                 newServerIP = connectResponse.ip;
                 newServerPort = connectResponse.port;
