@@ -65,7 +65,6 @@ namespace AltNetIk
             // Send IK
             NetDataWriter writer = new NetDataWriter();
             netPacketProcessor.Write(writer, senderPacketData);
-            serverPeer.Send(writer, DeliveryMethod.ReliableSequenced);
             var maxMtu = serverPeer.GetMaxSinglePacketSize(DeliveryMethod.Sequenced);
             if (writer.Length > maxMtu)
                 // split packet when MTU is too small

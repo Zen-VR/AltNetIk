@@ -2,6 +2,7 @@
 using LiteNetLib.Utils;
 using MelonLoader;
 using Newtonsoft.Json;
+using ReMod.Core.Notification;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -143,10 +144,10 @@ namespace AltNetIk
                 Logger.Error("ReMod.Core.Updater.dll is missing, it's required to use this mod.");
                 using (var client = new WebClient())
                 {
+                    client.Headers.Add("user-agent", $"{BuildInfo.Name} {BuildInfo.Version}");
                     client.DownloadFile("https://api.vrcmg.com/v1/mods/download/328", ReModCoreUpdaterPath);
                 }
                 Logger.Warning("ReMod.Core.Updater.dll has been downloaded into the plugins folder, please restart your game to load this mod.");
-                return;
             }
 
             netPacketProcessor.RegisterNestedType<System.Numerics.Quaternion>(Serializers.SerializeQuaternion, Serializers.DeserializeQuaternion);
@@ -229,7 +230,10 @@ namespace AltNetIk
                 {
                     // reconnect to apply new settings
                     Disconnect();
-                    MelonCoroutines.Start(Connect());
+                    if (customServer)
+                        MelonCoroutines.Start(Connect());
+                    else
+                        NegotiateServer();
                 }
             }
 
@@ -328,6 +332,7 @@ namespace AltNetIk
                 if (connectResponse.action == "Error")
                 {
                     Logger.Error(connectResponse.message);
+                    NotificationSystem.EnqueueNotification("AltNetIk", connectResponse.message);
                     if (IsConnected)
                     {
                         ReconnectLastAttempt = 0;
@@ -338,6 +343,7 @@ namespace AltNetIk
                 else if (!String.IsNullOrEmpty(connectResponse.message))
                 {
                     Logger.Msg(connectResponse.message);
+                    NotificationSystem.EnqueueNotification("AltNetIk", connectResponse.message);
                 }
                 newServerIP = connectResponse.ip;
                 newServerPort = connectResponse.port;

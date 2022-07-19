@@ -48,7 +48,7 @@ namespace AltNetIk
                 NotificationSystem.EnqueueNotification("AltNetIk", "Ping", 1f);
             }, ResourceManager.GetSprite("altnetik.ping"));
 
-            toggles["EnableLerp"] = menu.AddToggle("Receiver Interpolation", "Toggle receiver interpolation.", state =>
+            toggles["EnableLerp"] = menu.AddToggle("Receiver Interpolation", "Toggle receiver interpolation (Default: enabled).", state =>
             {
                 AltNetIk.enableLerp = state;
                 MelonPreferences.SetEntryValue(AltNetIk.ModID, "EnableLerp", state);
