@@ -2,7 +2,6 @@
 using LiteNetLib.Utils;
 using MelonLoader;
 using Newtonsoft.Json;
-using ReMod.Core.Notification;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -17,8 +16,18 @@ using System.Text;
 using UnityEngine;
 using VRC;
 using VRC.Core;
+using VRC.DataModel.Core;
 using VRC.Playables;
+using VRC.UI.Elements.Menus;
 using Delegate = Il2CppSystem.Delegate;
+
+// VRCAvatarManager.AvatarKind
+// VRCAvatarManager.field_Private_EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique_0
+// VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique
+
+// AvatarParameter.ParameterType
+// AvatarParameterAccess.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0
+// AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique
 
 namespace AltNetIk
 {
@@ -38,7 +47,7 @@ namespace AltNetIk
         public static NetPeer serverPeer;
         private readonly NetPacketProcessor netPacketProcessor = new NetPacketProcessor();
 
-        private static ConcurrentDictionary<int, PlayerData> receiverPlayerData = new ConcurrentDictionary<int, PlayerData>();
+        public static ConcurrentDictionary<int, PlayerData> receiverPlayerData = new ConcurrentDictionary<int, PlayerData>();
         private static Dictionary<int, GameObject> frozenPlayers = new Dictionary<int, GameObject>();
         private static Dictionary<int, NamePlateInfo> playerNamePlates = new Dictionary<int, NamePlateInfo>();
 
@@ -133,22 +142,8 @@ namespace AltNetIk
             serverPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
             floatPrecision = MelonPreferences.GetEntryValue<bool>(ModID, "FloatPrecision");
 
-            if (!MelonHandler.Mods.Any(m => m.Info.Name == "TabExtension"))
-                Logger.Warning("TabExtension is missing, to fix broken quick menu tabs install it from here: https://github.com/DragonPlayerX/TabExtension/releases/latest");
 
             _streamSafe = Environment.GetCommandLineArgs().Contains("-streamsafe");
-
-            var ReModCoreUpdaterPath = Path.Combine(MelonUtils.GetGameDataDirectory(), "../Plugins/ReMod.Core.Updater.dll");
-            if (!File.Exists(ReModCoreUpdaterPath))
-            {
-                Logger.Error("ReMod.Core.Updater.dll is missing, it's required to use this mod.");
-                using (var client = new WebClient())
-                {
-                    client.Headers.Add("user-agent", $"{BuildInfo.Name} {BuildInfo.Version}");
-                    client.DownloadFile("https://api.vrcmg.com/v1/mods/download/328", ReModCoreUpdaterPath);
-                }
-                Logger.Warning("ReMod.Core.Updater.dll has been downloaded into the plugins folder, please restart your game to load this mod.");
-            }
 
             netPacketProcessor.RegisterNestedType<System.Numerics.Quaternion>(Serializers.SerializeQuaternion, Serializers.DeserializeQuaternion);
             netPacketProcessor.RegisterNestedType<System.Numerics.Vector3>(Serializers.SerializeVector3, Serializers.DeserializeVector3);
@@ -158,32 +153,41 @@ namespace AltNetIk
 
             MelonCoroutines.Start(UiInit());
             Camera.onPreRender = Delegate.Combine(Camera.onPreRender, (Camera.CameraCallback)OnVeryLateUpdate).Cast<Camera.CameraCallback>();
+            Logger.Msg("Initialized");
             unsafe
             {
                 // stolen from who knows where
-                var param_prop_bool_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_set_boolVal_Public_Virtual_Final_New_set_Void_Boolean_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                var param_prop_bool_set = (IntPtr)typeof(AvatarParameterAccess).GetField("NativeMethodInfoPtr_set_boolVal_Public_Virtual_Final_New_set_Void_Boolean_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
                 MelonUtils.NativeHookAttach(param_prop_bool_set, new Action<IntPtr, bool>(BoolPropertySetter).Method.MethodHandle.GetFunctionPointer());
                 _boolPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<BoolPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_bool_set);
 
-                var param_prop_int_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_set_intVal_Public_Virtual_Final_New_set_Void_Int32_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                var param_prop_int_set = (IntPtr)typeof(AvatarParameterAccess).GetField("NativeMethodInfoPtr_set_intVal_Public_Virtual_Final_New_set_Void_Int32_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
                 MelonUtils.NativeHookAttach(param_prop_int_set, new Action<IntPtr, int>(IntPropertySetter).Method.MethodHandle.GetFunctionPointer());
                 _intPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<IntPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_int_set);
 
-                var param_prop_float_set = (IntPtr)typeof(AvatarParameter).GetField("NativeMethodInfoPtr_set_floatVal_Public_Virtual_Final_New_set_Void_Single_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                var param_prop_float_set = (IntPtr)typeof(AvatarParameterAccess).GetField("NativeMethodInfoPtr_set_floatVal_Public_Virtual_Final_New_set_Void_Single_0", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
                 MelonUtils.NativeHookAttach(param_prop_float_set, new Action<IntPtr, float>(FloatPropertySetter).Method.MethodHandle.GetFunctionPointer());
                 _floatPropertySetterDelegate = Marshal.GetDelegateForFunctionPointer<FloatPropertySetterDelegate>(*(IntPtr*)(void*)param_prop_float_set);
             }
         }
 
-        public IEnumerator UiInit()
+        private GameObject FindUserInterface()
+        {
+            GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
+            foreach (var gameObject in allObjects)
+                if (gameObject.activeInHierarchy && gameObject.name.Contains("UserInterface"))
+                    return gameObject;
+            return null;
+        }
+
+        private IEnumerator UiInit()
         {
             while (VRCUiManager.prop_VRCUiManager_0 == null)
                 yield return new WaitForSeconds(0.1f);
-            while (GameObject.Find("UserInterface").transform.Find("Canvas_QuickMenu(Clone)") == null)
+            while (FindUserInterface()?.transform.Find("Canvas_QuickMenu(Clone)") == null)
                 yield return new WaitForSeconds(0.1f);
 
             Patches.DoPatches();
-            Buttons.SetupButtons();
         }
 
         public override void OnUpdate()
@@ -200,7 +204,6 @@ namespace AltNetIk
                 {
                     TimeoutCheck();
                     UpdateNamePlates();
-                    Buttons.UpdatePing();
                 }
             }
         }
@@ -215,11 +218,6 @@ namespace AltNetIk
             var newServerPort = MelonPreferences.GetEntryValue<int>(ModID, "ServerPort");
             var newFloatPrecision = MelonPreferences.GetEntryValue<bool>(ModID, "FloatPrecision");
             var newCustomServer = MelonPreferences.GetEntryValue<bool>(ModID, "CustomServer");
-
-            Buttons.UpdateToggleState("NameplateStats", namePlates);
-            Buttons.UpdateToggleState("EnableLerp", enableLerp);
-            Buttons.UpdateToggleState("AutoConnect", autoConnect);
-            Buttons.UpdateToggleState("CustomServer", newCustomServer);
 
             if (newCustomServer != customServer || newServerIP != serverIP || newServerPort != serverPort)
             {
@@ -259,7 +257,6 @@ namespace AltNetIk
             IsSending = !IsSending;
             if (!IsSending)
                 StopSending();
-            Buttons.UpdateAllButtons();
         }
 
         public void ToggleReceive()
@@ -269,13 +266,11 @@ namespace AltNetIk
             {
                 DisableReceivers();
             }
-            Buttons.UpdateAllButtons();
         }
 
         private void ToggleLerp()
         {
             enableLerp = !enableLerp;
-            Buttons.UpdateAllButtons();
         }
 
         public void OnPhotonInstanceChanged()
@@ -332,7 +327,6 @@ namespace AltNetIk
                 if (connectResponse.action == "Error")
                 {
                     Logger.Error(connectResponse.message);
-                    NotificationSystem.EnqueueNotification("AltNetIk", connectResponse.message);
                     if (IsConnected)
                     {
                         ReconnectLastAttempt = 0;
@@ -343,7 +337,7 @@ namespace AltNetIk
                 else if (!String.IsNullOrEmpty(connectResponse.message))
                 {
                     Logger.Msg(connectResponse.message);
-                    NotificationSystem.EnqueueNotification("AltNetIk", connectResponse.message);
+
                 }
                 newServerIP = connectResponse.ip;
                 newServerPort = connectResponse.port;
@@ -409,12 +403,13 @@ namespace AltNetIk
             int photonId = player.field_Private_Player_0.field_Private_Int32_0;
             if (player.gameObject == currentUser.gameObject)
             {
+                OnPhotonInstanceChanged();
                 currentPhotonId = photonId;
                 MelonCoroutines.Start(SendLocationData());
             }
             else
             {
-                SetNamePlate(photonId, player);
+                SetNamePlate(photonId);
             }
         }
 
@@ -422,7 +417,9 @@ namespace AltNetIk
         {
             if (player == null)
                 return;
+
             int photonId = player.field_Private_Player_0.field_Private_Int32_0;
+            Logger.Msg($"player left {photonId}");
             if (photonId != currentPhotonId)
             {
                 DisableReceiver(photonId);
@@ -437,7 +434,7 @@ namespace AltNetIk
             if (player == null)
                 return;
 
-            short avatarKind = (short)avatarManager.field_Private_AvatarKind_0;
+            short avatarKind = (short)avatarManager.field_Private_EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique_0;
 
             if (player == VRCPlayer.field_Internal_Static_VRCPlayer_0)
                 SetSenderBones(player, avatarManager, avatarKind);
@@ -452,7 +449,7 @@ namespace AltNetIk
 
             if (player == VRCPlayer.field_Internal_Static_VRCPlayer_0)
             {
-                senderPlayerData.avatarKind = (short)avatarManager.field_Private_AvatarKind_0;
+                senderPlayerData.avatarKind = (short)avatarManager.field_Private_EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique_0;
             }
             else
             {
@@ -461,7 +458,7 @@ namespace AltNetIk
                 if (!hasBoneData)
                     return;
 
-                boneData.avatarKind = (short)avatarManager.field_Private_AvatarKind_0;
+                boneData.avatarKind = (short)avatarManager.field_Private_EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique_0;
                 receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
             }
         }

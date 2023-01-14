@@ -84,26 +84,26 @@ namespace AltNetIk
             paramData[byteIndex++] = paramCountBytes.byte1;
             foreach (var parameter in senderPlayerData.parameters)
             {
-                var type = parameter.field_Public_ParameterType_0;
-                if (floatPrecision && type == AvatarParameter.ParameterType.Float)
-                    type = (AvatarParameter.ParameterType)10; // 2 byte float
+                var type = parameter.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0;
+                if (floatPrecision && type == AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float)
+                    type = (AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique)10; // 2 byte float
 
                 paramData[byteIndex++] = (byte)type;
                 switch (type)
                 {
-                    case AvatarParameter.ParameterType.Bool:
+                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
                         paramData[byteIndex++] = Convert.ToByte(parameter.field_Private_Boolean_0);
                         break;
 
-                    case AvatarParameter.ParameterType.Int:
+                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
                         paramData[byteIndex++] = (byte)parameter.field_Private_Int32_1;
                         break;
 
-                    case AvatarParameter.ParameterType.Float:
+                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
                         paramData[byteIndex++] = Serializers.SerializeFloat(parameter.field_Private_Single_0);
                         break;
 
-                    case (AvatarParameter.ParameterType)10:
+                    case (AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique)10:
                         Serializers.SerializeFloatAsShortBytes(ref paramData, ref byteIndex, parameter.field_Private_Single_0);
                         break;
                 }
@@ -152,7 +152,7 @@ namespace AltNetIk
 
         public void UpdateAllowedToSend(PlayerData playerData)
         {
-            if ((playerData.isSdk2 && playerData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom) ||
+            if ((playerData.isSdk2 && playerData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom) ||
                 playerData.playerAvatarManager.field_Public_VRC_StationInternal_0?.prop_PhotonView_0 != null)
             {
                 // check if seated in station and if it's synced
@@ -160,14 +160,12 @@ namespace AltNetIk
                 if (!IsSendingBlocked)
                 {
                     IsSendingBlocked = true;
-                    Buttons.UpdateAllButtons();
                     StopSending();
                 }
             }
             else if (IsSendingBlocked)
             {
                 IsSendingBlocked = false;
-                Buttons.UpdateAllButtons();
             }
         }
     }

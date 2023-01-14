@@ -1,15 +1,17 @@
 using MelonLoader;
 using System;
-using System.Numerics;
+using System.Collections.Generic;
 using UnhollowerRuntimeLib;
+using VRC;
 using VRC.Dynamics;
-using VRC.Playables;
+using VRC.Networking.Pose;
 using VRC.SDK3.Dynamics.PhysBone.Components;
 using Component = UnityEngine.Component;
 using GameObject = UnityEngine.GameObject;
 using Object = UnityEngine.Object;
+using Quaternion = System.Numerics.Quaternion;
 using Transform = UnityEngine.Transform;
-using ReMod.Core.Notification;
+using Vector3 = System.Numerics.Vector3;
 
 namespace AltNetIk
 {
@@ -46,7 +48,7 @@ namespace AltNetIk
                     packetData.frozen = packet.frozen;
                     if (packet.frozen)
                     {
-                        if (hasBoneData && packet.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom)
+                        if (hasBoneData && packet.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom && boneData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom)
                             ToggleFreeze(packet.photonId, packet.frozen);
                     }
                     else
@@ -75,7 +77,7 @@ namespace AltNetIk
             }
             else
             {
-                if (hasBoneData && packet.frozen && packet.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom)
+                if (hasBoneData && packet.frozen && packet.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom && boneData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom)
                     ToggleFreeze(packet.photonId, packet.frozen);
 
                 ReceiverPacketData newPacketData = new ReceiverPacketData
@@ -126,6 +128,8 @@ namespace AltNetIk
                 {
                     EnableReceiver(boneData);
                 }
+                if (boneData.playerPoseAV3Update != null)
+                    boneData.playerPoseAV3Update.enabled = false;
 
                 var dataBankA = packetData.dataBankA;
                 var dataBankB = packetData.dataBankB;
@@ -181,7 +185,7 @@ namespace AltNetIk
                 boneData.playerTransform.SetPositionAndRotation(playerPosition.ToUnity(), playerRotation.ToUnity());
                 if (boneData.transforms.Length > 0 && boneData.transforms[0] != null && packetData.boneCount > 0)
                 {
-                    if (packetData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.AvatarKind.Custom)
+                    if (packetData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom && boneData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom)
                     {
                         Quaternion hipRotation = Quaternion.Slerp(dataBankB.boneRotations[0], dataBankA.boneRotations[0], deltaFloat);
 
@@ -232,50 +236,56 @@ namespace AltNetIk
                 if (paramCount < 19)
                     return;
 
-                var isFallback = playerData.avatarKind == (short)VRCAvatarManager.AvatarKind.Fallback;
+                var isFallback = playerData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Fallback;
                 if (playerData.parameters.Count != paramCount)
                     isFallback = true;
 
                 for (int i = 0; i < paramCount; i++)
                 {
                     if (isFallback && i > 18) // Only apply 19 default parameters to fallback avatars
+                    {
                         return;
+                    }
 
                     var parameter = playerData.parameters[i];
-                    var type = parameter.field_Public_ParameterType_0;
-                    var senderType = (AvatarParameter.ParameterType)packet.paramData[byteIndex++];
+                    var type = parameter.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0;
+                    var senderType = (AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique)packet.paramData[byteIndex++];
+                    if (type != senderType && senderType != (AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique)10)
+                    {
+                        return;
+                    }
 
                     switch (senderType)
                     {
-                        case AvatarParameter.ParameterType.Bool:
+                        case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
                             if (type != senderType)
                                 return;
                             var boolParam = packet.paramData[byteIndex++] != 0;
                             BoolPropertySetter(parameter.Pointer, boolParam);
                             break;
 
-                        case AvatarParameter.ParameterType.Int:
+                        case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
                             if (type != senderType)
                                 return;
                             var intParam = packet.paramData[byteIndex++];
                             IntPropertySetter(parameter.Pointer, intParam);
 
                             // Fix avatar limb grabber
-                            if (i == 2) // GestureLeft
-                                playerData.playerHandGestureController.field_Private_Gesture_0 = (HandGestureController.Gesture)intParam;
-                            else if (i == 4) // GestureRight
-                                playerData.playerHandGestureController.field_Private_Gesture_2 = (HandGestureController.Gesture)intParam;
+                            //if (i == 2) // GestureLeft
+                            //    playerData.playerHandGestureController.field_Private_Gesture_0 = (HandGestureController.Gesture)intParam;
+                            //else if (i == 4) // GestureRight
+                            //    playerData.playerHandGestureController.field_Private_Gesture_2 = (HandGestureController.Gesture)intParam;
                             break;
 
-                        case AvatarParameter.ParameterType.Float:
+                        case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
                             if (type != senderType)
                                 return;
                             var floatParam = Serializers.DeserializeFloat(packet.paramData[byteIndex++]);
                             FloatPropertySetter(parameter.Pointer, floatParam);
                             break;
 
-                        case (AvatarParameter.ParameterType)10:
-                            if (type != AvatarParameter.ParameterType.Float)
+                        case (AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique)10:
+                            if (type != AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float)
                                 return;
 
                             var b0 = packet.paramData[byteIndex++];
@@ -312,11 +322,9 @@ namespace AltNetIk
                     break;
 
                 case "Message":
-                    NotificationSystem.EnqueueNotification("AltNetIk", packet.data);
                     Logger.Warning($"Server message: {packet.data}");
                     break;
             }
-            Buttons.UpdateAllButtons();
         }
 
         private void TimeoutCheck()
@@ -341,10 +349,10 @@ namespace AltNetIk
             RemoveFreeze(photonId);
             if (frozen)
             {
-                var avatarTransfrom = boneData.playerTransform.Find("ForwardDirection/Avatar");
-                if (avatarTransfrom == null)
+                var avatarTransform = boneData.playerTransform.Find("ForwardDirection/Avatar");
+                if (avatarTransform == null)
                     return;
-                GameObject avatar = avatarTransfrom.gameObject;
+                GameObject avatar = avatarTransform.gameObject;
                 GameObject avatarClone = Object.Instantiate(avatar);
                 foreach (Component component in avatarClone.GetComponents<Component>())
                 {
@@ -388,6 +396,9 @@ namespace AltNetIk
             {
                 DisableReceiver(packetData.photonId);
             }
+            boolParamsInUse.Clear();
+            intParamsInUse.Clear();
+            floatParamsInUse.Clear();
             UpdateNamePlates();
         }
 
@@ -400,70 +411,112 @@ namespace AltNetIk
             bool hasReceiverPlayerData = receiverPlayerData.TryGetValue(photonId, out PlayerData playerData);
             if (hasReceiverPlayerData)
             {
-                foreach (var parameter in playerData.parameters)
-                {
-                    switch (parameter.field_Public_ParameterType_0)
-                    {
-                        case AvatarParameter.ParameterType.Bool:
-                            boolParamsInUse.Remove(parameter.Pointer);
-                            break;
-
-                        case AvatarParameter.ParameterType.Int:
-                            intParamsInUse.Remove(parameter.Pointer);
-                            break;
-
-                        case AvatarParameter.ParameterType.Float:
-                            floatParamsInUse.Remove(parameter.Pointer);
-                            break;
-                    }
-                }
-
+                RemoveParamsInUse(playerData.parameters);
                 if (playerData.playerTransform == null)
                     return;
 
                 playerData.active = false;
-                playerData.playerPoseRecorder.enabled = true;
-                playerData.playerHandGestureController.enabled = true;
-                playerData.playerVRCVrIkController.enabled = true;
+
+                var poseRecorder = playerData.playerAnimationController.GetComponent<PoseRecorder>();
+                if (poseRecorder != null) poseRecorder.enabled = true;
+
+                var handGestureController = playerData.playerAnimationController.GetComponent<HandGestureController>();
+                if (handGestureController != null) handGestureController.enabled = true;
+
+                var poseAv3Update = playerData.playerAnimationController.GetComponent<PoseAV3Update>();
+                if (poseAv3Update != null) poseAv3Update.enabled = true;
+
+                //var vrcVrIkController = playerData.playerAnimationController.GetComponentInChildren<VRCVrIkController>();
+                //if (vrcVrIkController != null) vrcVrIkController.enabled = true;
+
                 receiverPlayerData.AddOrUpdate(photonId, playerData, (k, v) => playerData);
             }
             bool hasPlayerNamePlate = playerNamePlates.TryGetValue(photonId, out NamePlateInfo namePlateInfo);
             if (hasPlayerNamePlate)
             {
                 namePlateInfo.namePlate.SetActive(false);
-                namePlateInfo.namePlateStatusLine.localPosition = new UnityEngine.Vector3 { x = 0.0066f, y = -58f, z = 0f };
-                namePlateInfo.namePlateAvatarProgress.localPosition = new UnityEngine.Vector3 { x = 0f, y = -15f, z = 0f };
             }
+            Logger.Msg($"Disable receiver {photonId}");
         }
 
         private void EnableReceiver(PlayerData playerData)
         {
-            playerData.active = true;
-            playerData.playerPoseRecorder.enabled = false;
-            playerData.playerHandGestureController.enabled = false;
-            playerData.playerVRCVrIkController.enabled = false;
-            foreach (var parameter in playerData.parameters)
+            Logger.Msg($"Enabling receiver {playerData.photonId}");
+            var poseRecorder = playerData.playerAnimationController.GetComponent<PoseRecorder>();
+            if (poseRecorder == null) return;
+            poseRecorder.enabled = false;
+
+            Logger.Msg("Pose recorder disabled");
+
+            var handGestureController = playerData.playerAnimationController.GetComponent<HandGestureController>();
+            if (handGestureController == null) return;
+            handGestureController.enabled = false;
+
+            Logger.Msg("Hand gesture controller disabled");
+
+            var poseAv3Update = playerData.playerAnimationController.GetComponent<PoseAV3Update>();
+            if (poseAv3Update != null)
             {
-                switch (parameter.field_Public_ParameterType_0)
+                poseAv3Update.enabled = false;
+                Logger.Msg("Pose av3 update disabled");
+            }
+
+            //var vrcVrIkController = playerData.playerAnimationController.GetComponentInChildren<VRCVrIkController>();
+            //if (vrcVrIkController == null) return;
+            //vrcVrIkController.enabled = false;
+
+            Logger.Msg("VRC VR IK controller disabled");
+
+            playerData.active = true;
+            AddParamsInUse(playerData.parameters);
+            receiverPlayerData.AddOrUpdate(playerData.photonId, playerData, (k, v) => playerData);
+
+            Logger.Msg("Enabled receiver");
+        }
+
+        private void AddParamsInUse(List<AvatarParameterAccess> parameters)
+        {
+            foreach (var parameter in parameters)
+            {
+                switch (parameter.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0)
                 {
-                    case AvatarParameter.ParameterType.Bool:
+                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
                         if (!boolParamsInUse.Contains(parameter.Pointer))
                             boolParamsInUse.Add(parameter.Pointer);
                         break;
 
-                    case AvatarParameter.ParameterType.Int:
+                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
                         if (!intParamsInUse.Contains(parameter.Pointer))
                             intParamsInUse.Add(parameter.Pointer);
                         break;
 
-                    case AvatarParameter.ParameterType.Float:
+                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
                         if (!floatParamsInUse.Contains(parameter.Pointer))
                             floatParamsInUse.Add(parameter.Pointer);
                         break;
                 }
             }
+        }
 
-            receiverPlayerData.AddOrUpdate(playerData.photonId, playerData, (k, v) => playerData);
+        private void RemoveParamsInUse(List<AvatarParameterAccess> parameters)
+        {
+            foreach (var parameter in parameters)
+            {
+                switch (parameter.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0)
+                {
+                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
+                        boolParamsInUse.Remove(parameter.Pointer);
+                        break;
+
+                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
+                        intParamsInUse.Remove(parameter.Pointer);
+                        break;
+
+                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
+                        floatParamsInUse.Remove(parameter.Pointer);
+                        break;
+                }
+            }
         }
     }
 }

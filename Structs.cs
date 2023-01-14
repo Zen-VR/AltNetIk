@@ -5,6 +5,7 @@ using System.Numerics;
 using TMPro;
 using VRC;
 using VRC.Networking;
+using VRC.Networking.Pose;
 using VRC.Playables;
 using GameObject = UnityEngine.GameObject;
 using Transform = UnityEngine.Transform;
@@ -16,11 +17,8 @@ namespace AltNetIk
         public struct NamePlateInfo
         {
             public int photonId;
-            public Player player;
             public GameObject namePlate;
             public TextMeshProUGUI namePlateText;
-            public Transform namePlateStatusLine;
-            public Transform namePlateAvatarProgress;
         }
 
         // Large structure, must be class to avoid deepcopies
@@ -30,10 +28,9 @@ namespace AltNetIk
             public bool frozen;
             public short avatarKind;
             public Transform playerTransform;
-            public PoseRecorder playerPoseRecorder;
-            public HandGestureController playerHandGestureController;
-            public VRCVrIkController playerVRCVrIkController;
             public VRCAvatarManager playerAvatarManager;
+            public AnimatorControllerManager playerAnimationController;
+            public PoseAV3Update playerPoseAV3Update;
             public Quaternion[] preQArray;
             public Quaternion[] preQinvArray;
             public Quaternion[] postQArray;
@@ -41,7 +38,7 @@ namespace AltNetIk
             public Transform[] transforms;
             public int boneCount;
             public bool[] boneList;
-            public List<AvatarParameter> parameters;
+            public List<AvatarParameterAccess> parameters;
             public short floatParamCount;
             public bool active;
             public bool isSdk2;

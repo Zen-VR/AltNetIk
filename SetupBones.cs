@@ -6,6 +6,7 @@ using System.Numerics;
 using VRC.Networking;
 using VRC.Core;
 using System;
+using VRC.Networking.Pose;
 
 namespace AltNetIk
 {
@@ -16,9 +17,9 @@ namespace AltNetIk
             int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
             int boneCount = 0;
             bool[] boneList = new bool[UnityEngine.HumanTrait.BoneCount];
-            var parameters = new List<AvatarParameter>();
+            var parameters = new List<AvatarParameterAccess>();
             var expressionParameters = new List<string>();
-            var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
+            var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameterAccess_0;
             var avatarDescriptor = avatarManager.field_Private_VRCAvatarDescriptor_0;
             if (avatarDescriptor?.expressionParameters != null)
             {
@@ -43,18 +44,18 @@ namespace AltNetIk
                     if (paramIndex > 20 && !expressionParameters.Contains(parameterName)) // keep only defaults and expression parameters
                         continue;
 
-                    var type = param.field_Public_ParameterType_0;
+                    var type = param.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0;
                     switch (type)
                     {
-                        case AvatarParameter.ParameterType.Bool:
+                        case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
                             boolParams++;
                             break;
 
-                        case AvatarParameter.ParameterType.Int:
+                        case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
                             intParams++;
                             break;
 
-                        case AvatarParameter.ParameterType.Float:
+                        case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
                             floatParams++;
                             break;
                     }
@@ -71,7 +72,7 @@ namespace AltNetIk
                 PipelineManager pipelineManager = animator.gameObject.GetComponent<PipelineManager>();
                 if (pipelineManager?.blueprintId == "avtr_749445a8-d9bf-4d48-b077-d18b776f66f7")
                 {
-                    avatarKind = (short)VRCAvatarManager.AvatarKind.Loading;
+                    avatarKind = (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Loading;
                     isSdk2 = false; // skip SDK2 check for loading avatar
                 }
             }
@@ -83,9 +84,8 @@ namespace AltNetIk
                     photonId = photonId,
                     playerTransform = player.transform,
                     playerAvatarManager = avatarManager,
-                    playerPoseRecorder = animationController.GetComponent<PoseRecorder>(),
-                    playerHandGestureController = animationController.GetComponent<HandGestureController>(),
-                    playerVRCVrIkController = animationController.GetComponentInChildren<VRCVrIkController>(),
+                    playerAnimationController = animationController,
+                    playerPoseAV3Update = animationController.GetComponent<PoseAV3Update>(),
                     preQArray = new Quaternion[boneCount],
                     preQinvArray = new Quaternion[boneCount],
                     postQArray = new Quaternion[boneCount],
@@ -99,6 +99,7 @@ namespace AltNetIk
                     isSdk2 = isSdk2
                 };
                 receiverPlayerData.AddOrUpdate(photonId, emptyBoneData, (k, v) => emptyBoneData);
+                Logger.Msg("SetReceiverBones empty");
                 return;
             }
 
@@ -137,9 +138,8 @@ namespace AltNetIk
                 photonId = photonId,
                 playerTransform = player.transform,
                 playerAvatarManager = avatarManager,
-                playerPoseRecorder = animationController.GetComponent<PoseRecorder>(),
-                playerHandGestureController = animationController.GetComponent<HandGestureController>(),
-                playerVRCVrIkController = animationController.GetComponentInChildren<VRCVrIkController>(),
+                playerAnimationController = animationController,
+                playerPoseAV3Update = animationController.GetComponent<PoseAV3Update>(),
                 preQArray = new Quaternion[boneCount],
                 preQinvArray = new Quaternion[boneCount],
                 postQArray = new Quaternion[boneCount],
@@ -172,6 +172,8 @@ namespace AltNetIk
                 EnableReceiver(boneData);
             else
                 receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
+
+            Logger.Msg($"SetReceiverBones done {boneCount}");
         }
 
         public void SetSenderBones(VRCPlayer player, VRCAvatarManager avatarManager, short avatarKind)
@@ -179,9 +181,9 @@ namespace AltNetIk
             int photonId = player.prop_PhotonView_0.field_Private_Int32_0;
             int boneCount = 0;
             bool[] boneList = new bool[UnityEngine.HumanTrait.BoneCount];
-            var parameters = new List<AvatarParameter>();
+            var parameters = new List<AvatarParameterAccess>();
             var expressionParameters = new List<string>();
-            var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameter_0;
+            var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameterAccess_0;
             var avatarDescriptor = avatarManager.field_Private_VRCAvatarDescriptor_0;
             if (avatarDescriptor?.expressionParameters != null)
             {
@@ -204,7 +206,7 @@ namespace AltNetIk
                     if (paramIndex > 20 && !expressionParameters.Contains(parameterName)) // keep only defaults and expression parameters
                         continue;
 
-                    if (param.field_Public_ParameterType_0 == AvatarParameter.ParameterType.Float)
+                    if (param.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0 == AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float)
                         floatParamCount++;
 
                     parameters.Add(param);
@@ -227,7 +229,7 @@ namespace AltNetIk
                 PipelineManager pipelineManager = animator.gameObject.GetComponent<PipelineManager>();
                 if (pipelineManager?.blueprintId == "avtr_749445a8-d9bf-4d48-b077-d18b776f66f7")
                 {
-                    avatarKind = (short)VRCAvatarManager.AvatarKind.Loading;
+                    avatarKind = (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Loading;
                     isSdk2 = false; // skip SDK2 check for loading avatar
                 }
             }
@@ -319,6 +321,8 @@ namespace AltNetIk
                 senderPlayerData.postQinvArray[index] = Quaternion.Inverse(postQ);
                 senderPlayerData.transforms[index] = animator.GetBoneTransform((UnityEngine.HumanBodyBones)i);
             }
+
+            Logger.Msg("sender bones set");
         }
     }
 }

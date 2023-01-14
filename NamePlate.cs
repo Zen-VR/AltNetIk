@@ -10,20 +10,35 @@ namespace AltNetIk
 {
     public partial class AltNetIk : MelonMod
     {
-        public void SetNamePlate(int photonId, Player player)
+        public void SetNamePlate(int photonId)
         {
+            NameplateManager playerNameplateManager = null;
+            var allObjects = Object.FindObjectsOfType<NameplateManager>();
+            foreach (var nameplateManager in allObjects)
+            {
+                if (nameplateManager?.field_Public_VRCPlayer_0?.prop_PhotonView_0?.field_Private_Int32_0 ==
+                    photonId)
+                {
+                    playerNameplateManager = nameplateManager;
+                }
+            }
+
+            if (playerNameplateManager == null)
+            {
+                Logger.Msg($"no nameplate found {photonId}");
+                return;
+            }
+
             // stolen from ReModCE
-            Transform stats = Object.Instantiate(player.gameObject.transform.Find("Player Nameplate/Canvas/Nameplate/Contents/Quick Stats"), player.gameObject.transform.Find("Player Nameplate/Canvas/Nameplate/Contents"));
+            Transform stats = Object.Instantiate(playerNameplateManager.gameObject.transform.Find("PlayerNameplate/Canvas/NameplateGroup/Nameplate/Contents/Quick Stats"), playerNameplateManager.gameObject.transform.Find("PlayerNameplate/Canvas/Nameplate/Contents"));
             if (stats == null)
             {
                 Logger.Error("Couldn't find nameplate");
                 return;
             }
-            Transform statusLine = player.gameObject.transform.Find("Player Nameplate/Canvas/Nameplate/Contents/Status Line");
-            Transform avatarProgress = player.gameObject.transform.Find("Player Nameplate/Canvas/Avatar Progress");
+            stats.parent = playerNameplateManager.gameObject.transform.Find("PlayerNameplate/Canvas/NameplateGroup/Nameplate/Contents");
             stats.localPosition = new Vector3(0f, -58f, 0f);
             stats.transform.localScale = new Vector3(1f, 1f, 2f);
-            stats.parent = player.gameObject.transform.Find("Player Nameplate/Canvas/Nameplate/Contents");
             stats.gameObject.SetActive(false);
             TextMeshProUGUI namePlate = stats.Find("Trust Text").GetComponent<TextMeshProUGUI>();
             namePlate.color = Color.white;
@@ -32,11 +47,8 @@ namespace AltNetIk
             NamePlateInfo namePlateInfo = new NamePlateInfo
             {
                 photonId = photonId,
-                player = player,
                 namePlate = stats.gameObject,
                 namePlateText = namePlate,
-                namePlateStatusLine = statusLine,
-                namePlateAvatarProgress = avatarProgress
             };
             playerNamePlates.Add(photonId, namePlateInfo);
             stats.Find("Trust Icon").gameObject.SetActive(false);
@@ -62,22 +74,18 @@ namespace AltNetIk
                 if (!hasPacketData || !namePlates)
                 {
                     namePlateInfo.namePlate.SetActive(false);
-                    namePlateInfo.namePlateStatusLine.localPosition = new Vector3(0.0066f, -58f, 0f);
-                    namePlateInfo.namePlateAvatarProgress.localPosition = new Vector3(0f, -15f, 0f);
                     continue;
                 }
 
                 namePlateInfo.namePlate.SetActive(true);
                 namePlateInfo.namePlateText.enabled = true;
-                namePlateInfo.namePlateStatusLine.localPosition = new Vector3(0.0066f, -86f, 0f);
-                namePlateInfo.namePlateAvatarProgress.localPosition = new Vector3(0f, -42f, 0f);
                 if (packetData.packetsPerSecond == 0)
                     namePlateInfo.namePlateText.text = $"{color("#ff0000", "Timeout")}";
                 else
                 {
                     string loadingText = String.Empty;
                     string frozenText = String.Empty;
-                    if (packetData.avatarKind == (short)VRCAvatarManager.AvatarKind.Loading)
+                    if (packetData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Loading)
                         loadingText = $" {color("#00ff00", "Loading")}";
                     if (packetData.frozen)
                         frozenText = $" {color("#ff0000", "Frozen")}";

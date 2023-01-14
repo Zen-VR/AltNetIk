@@ -1,6 +1,5 @@
 using LiteNetLib;
 using MelonLoader;
-using ReMod.Core.Notification;
 using System;
 using System.Collections;
 
@@ -28,8 +27,6 @@ namespace AltNetIk
                 listener.NetworkReceiveEvent += OnNetworkReceive;
                 listener.PeerConnectedEvent += OnPeerConnected;
                 listener.PeerDisconnectedEvent += OnPeerDisconnected;
-
-                Buttons.UpdateAllButtons();
             }
             catch (Exception e)
             {
@@ -53,7 +50,6 @@ namespace AltNetIk
             ReconnectLastAttempt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             Logger.Msg(ConsoleColor.Green, "Connected");
             MelonCoroutines.Start(SendLocationData());
-            Buttons.UpdateAllButtons();
         }
 
         private void OnPeerDisconnected(NetPeer peer, DisconnectInfo disconnectInfo)
@@ -75,8 +71,6 @@ namespace AltNetIk
             }
 
             Logger.Msg(ConsoleColor.Red, message);
-            if (customServer)
-                NotificationSystem.EnqueueNotification("AltNetIk", message);
 
             DisconnectSilent();
         }
@@ -125,7 +119,6 @@ namespace AltNetIk
                 client = null;
             }
             DisableReceivers();
-            Buttons.UpdateAllButtons();
         }
 
         private void Disconnect()
