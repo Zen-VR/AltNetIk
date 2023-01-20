@@ -10,19 +10,9 @@ namespace AltNetIk
 {
     public partial class AltNetIk : MelonMod
     {
-        public void SetNamePlate(int photonId)
+        public void SetNamePlate(int photonId, Player player)
         {
-            NameplateManager playerNameplateManager = null;
-            var allObjects = Object.FindObjectsOfType<NameplateManager>();
-            foreach (var nameplateManager in allObjects)
-            {
-                if (nameplateManager?.field_Public_VRCPlayer_0?.prop_PhotonView_0?.field_Private_Int32_0 ==
-                    photonId)
-                {
-                    playerNameplateManager = nameplateManager;
-                }
-            }
-
+            var playerNameplateManager = player?.prop_VRCPlayer_0?.field_Public_PlayerNameplate_0;
             if (playerNameplateManager == null)
             {
                 Logger.Msg($"no nameplate found {photonId}");
@@ -30,13 +20,12 @@ namespace AltNetIk
             }
 
             // stolen from ReModCE
-            Transform stats = Object.Instantiate(playerNameplateManager.gameObject.transform.Find("PlayerNameplate/Canvas/NameplateGroup/Nameplate/Contents/Quick Stats"), playerNameplateManager.gameObject.transform.Find("PlayerNameplate/Canvas/Nameplate/Contents"));
+            Transform stats = Object.Instantiate(playerNameplateManager.gameObject.transform.Find("Contents/Quick Stats"), playerNameplateManager.gameObject.transform.Find("Contents"));
             if (stats == null)
             {
                 Logger.Error("Couldn't find nameplate");
                 return;
             }
-            stats.parent = playerNameplateManager.gameObject.transform.Find("PlayerNameplate/Canvas/NameplateGroup/Nameplate/Contents");
             stats.localPosition = new Vector3(0f, -58f, 0f);
             stats.transform.localScale = new Vector3(1f, 1f, 2f);
             stats.gameObject.SetActive(false);

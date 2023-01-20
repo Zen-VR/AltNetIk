@@ -166,14 +166,13 @@ namespace AltNetIk
                 boneData.postQinvArray[index] = Quaternion.Inverse(postQ);
                 boneData.transforms[index] = animator.GetBoneTransform((UnityEngine.HumanBodyBones)i);
             }
+            receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
 
             bool hasPacketData = receiverPacketData.TryGetValue(photonId, out ReceiverPacketData packetData);
             if (hasPacketData)
                 EnableReceiver(boneData);
-            else
-                receiverPlayerData.AddOrUpdate(photonId, boneData, (k, v) => boneData);
 
-            Logger.Msg($"SetReceiverBones done {boneCount}");
+            Logger.Msg($"SetReceiverBones done {photonId}:{boneCount}");
         }
 
         public void SetSenderBones(VRCPlayer player, VRCAvatarManager avatarManager, short avatarKind)

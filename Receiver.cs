@@ -107,11 +107,21 @@ namespace AltNetIk
                 int photonId = packetData.photonId;
 
                 bool hasBoneData = receiverPlayerData.TryGetValue(photonId, out PlayerData boneData);
-                if (!hasBoneData)
-                    continue;
+                if (!hasBoneData || boneData.playerTransform == null)
+                {
 
-                if (boneData.playerTransform == null)
                     continue;
+                }
+
+                if (!boneData.active)
+                {
+                    var active = EnableReceiver(boneData);
+                    if (!active)
+                        continue;
+                }
+
+                if (boneData.playerPoseAV3Update != null)
+                    boneData.playerPoseAV3Update.enabled = false;
 
                 int lastDeltaTime = 0;
                 bool hasLastDataBank = receiverLastPacket.TryGetValue(photonId, out DataBank lastDataBank);
@@ -123,13 +133,6 @@ namespace AltNetIk
                 {
                     boneRotations = new Quaternion[boneData.boneCount]
                 };
-
-                if (!boneData.active)
-                {
-                    EnableReceiver(boneData);
-                }
-                if (boneData.playerPoseAV3Update != null)
-                    boneData.playerPoseAV3Update.enabled = false;
 
                 var dataBankA = packetData.dataBankA;
                 var dataBankB = packetData.dataBankB;
@@ -426,8 +429,8 @@ namespace AltNetIk
                 var poseAv3Update = playerData.playerAnimationController.GetComponent<PoseAV3Update>();
                 if (poseAv3Update != null) poseAv3Update.enabled = true;
 
-                //var vrcVrIkController = playerData.playerAnimationController.GetComponentInChildren<VRCVrIkController>();
-                //if (vrcVrIkController != null) vrcVrIkController.enabled = true;
+                var vrcVrIkController = playerData.playerAnimationController.GetComponentInChildren<VRCVrIkController>();
+                if (vrcVrIkController != null) vrcVrIkController.enabled = true;
 
                 receiverPlayerData.AddOrUpdate(photonId, playerData, (k, v) => playerData);
             }
@@ -439,19 +442,20 @@ namespace AltNetIk
             Logger.Msg($"Disable receiver {photonId}");
         }
 
-        private void EnableReceiver(PlayerData playerData)
+        private bool EnableReceiver(PlayerData playerData)
         {
+            if (currentPhotonId == 0)
+                return false;
+
             Logger.Msg($"Enabling receiver {playerData.photonId}");
             var poseRecorder = playerData.playerAnimationController.GetComponent<PoseRecorder>();
-            if (poseRecorder == null) return;
+            if (poseRecorder == null) return false;
             poseRecorder.enabled = false;
-
             Logger.Msg("Pose recorder disabled");
 
             var handGestureController = playerData.playerAnimationController.GetComponent<HandGestureController>();
-            if (handGestureController == null) return;
+            if (handGestureController == null) return false;
             handGestureController.enabled = false;
-
             Logger.Msg("Hand gesture controller disabled");
 
             var poseAv3Update = playerData.playerAnimationController.GetComponent<PoseAV3Update>();
@@ -461,17 +465,11 @@ namespace AltNetIk
                 Logger.Msg("Pose av3 update disabled");
             }
 
-            //var vrcVrIkController = playerData.playerAnimationController.GetComponentInChildren<VRCVrIkController>();
-            //if (vrcVrIkController == null) return;
-            //vrcVrIkController.enabled = false;
-
-            Logger.Msg("VRC VR IK controller disabled");
-
             playerData.active = true;
             AddParamsInUse(playerData.parameters);
             receiverPlayerData.AddOrUpdate(playerData.photonId, playerData, (k, v) => playerData);
-
-            Logger.Msg("Enabled receiver");
+            Logger.Msg($"Enabled receiver {playerData.photonId}");
+            return true;
         }
 
         private void AddParamsInUse(List<AvatarParameterAccess> parameters)

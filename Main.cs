@@ -6,7 +6,6 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -17,7 +16,6 @@ using UnityEngine;
 using VRC;
 using VRC.Core;
 using VRC.DataModel.Core;
-using VRC.Playables;
 using VRC.UI.Elements.Menus;
 using Delegate = Il2CppSystem.Delegate;
 
@@ -275,12 +273,6 @@ namespace AltNetIk
 
         public void OnPhotonInstanceChanged()
         {
-            //Regex regex = new Regex(@".*~region\((.*?)\)");
-            //Match match = regex.Match(instance.id);
-            //var instanceRegion = "us";
-            //if (match.Success)
-            //    instanceRegion = match.Groups[1].Value;
-            ResetInstance();
             var photonServerIP = VRCNetworkingClient.field_Internal_Static_VRCNetworkingClient_0.field_Private_String_3;
             var worldId = RoomManager.field_Internal_Static_ApiWorldInstance_0.id;
             var region = RoomManager.field_Internal_Static_ApiWorldInstance_0.region;
@@ -409,7 +401,7 @@ namespace AltNetIk
             }
             else
             {
-                SetNamePlate(photonId);
+                SetNamePlate(photonId, player);
             }
         }
 
@@ -419,7 +411,10 @@ namespace AltNetIk
                 return;
 
             int photonId = player.field_Private_Player_0.field_Private_Int32_0;
-            Logger.Msg($"player left {photonId}");
+            if (photonId <= 0)
+                return;
+
+            Logger.Msg($"OnPlayerLeft {photonId}");
             if (photonId != currentPhotonId)
             {
                 DisableReceiver(photonId);
