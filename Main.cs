@@ -1,4 +1,4 @@
-﻿using LiteNetLib;
+using LiteNetLib;
 using LiteNetLib.Utils;
 using MelonLoader;
 using Newtonsoft.Json;
@@ -18,6 +18,11 @@ using VRC.Core;
 using VRC.DataModel.Core;
 using VRC.UI.Elements.Menus;
 using Delegate = Il2CppSystem.Delegate;
+using Player = MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique; // VRC.Player
+using AvatarKind = VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique;
+using AvatarParameterAccess = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
+using AvatarParameterAccessEnum = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
+using RoomManager = MonoBehaviourPublicBoApSiApBoObStBo1ObUnique;
 
 // VRCAvatarManager.AvatarKind
 // VRCAvatarManager.field_Private_EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique_0
@@ -329,7 +334,6 @@ namespace AltNetIk
                 else if (!String.IsNullOrEmpty(connectResponse.message))
                 {
                     Logger.Msg(connectResponse.message);
-
                 }
                 newServerIP = connectResponse.ip;
                 newServerPort = connectResponse.port;

@@ -9,6 +9,7 @@ using VRC.Networking.Pose;
 using VRC.Playables;
 using GameObject = UnityEngine.GameObject;
 using Transform = UnityEngine.Transform;
+using AvatarParameterAccess = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
 
 namespace AltNetIk
 {

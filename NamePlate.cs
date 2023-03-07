@@ -3,8 +3,9 @@ using System;
 using System.Linq;
 using TMPro;
 using UnityEngine;
-using VRC;
 using Object = UnityEngine.Object;
+using Player = MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique;
+using AvatarKind = VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique;
 
 namespace AltNetIk
 {
@@ -12,7 +13,7 @@ namespace AltNetIk
     {
         public void SetNamePlate(int photonId, Player player)
         {
-            var playerNameplateManager = player?.prop_VRCPlayer_0?.field_Public_PlayerNameplate_0;
+            var playerNameplateManager = player?.prop_VRCPlayer_0?.field_Public_NameplatePositioner_0;
             if (playerNameplateManager == null)
             {
                 Logger.Msg($"no nameplate found {photonId}");
@@ -20,7 +21,7 @@ namespace AltNetIk
             }
 
             // stolen from ReModCE
-            Transform stats = Object.Instantiate(playerNameplateManager.gameObject.transform.Find("Contents/Quick Stats"), playerNameplateManager.gameObject.transform.Find("Contents"));
+            Transform stats = Object.Instantiate(playerNameplateManager.gameObject.transform.Find("Canvas/NameplateGroup/Nameplate/Contents/Quick Stats"), playerNameplateManager.gameObject.transform.Find("Canvas/NameplateGroup/Nameplate/Contents"));
             if (stats == null)
             {
                 Logger.Error("Couldn't find nameplate");
@@ -74,7 +75,7 @@ namespace AltNetIk
                 {
                     string loadingText = String.Empty;
                     string frozenText = String.Empty;
-                    if (packetData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Loading)
+                    if (packetData.avatarKind == (short)AvatarKind.Loading)
                         loadingText = $" {color("#00ff00", "Loading")}";
                     if (packetData.frozen)
                         frozenText = $" {color("#ff0000", "Frozen")}";

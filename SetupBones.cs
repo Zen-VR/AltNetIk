@@ -7,6 +7,9 @@ using VRC.Networking;
 using VRC.Core;
 using System;
 using VRC.Networking.Pose;
+using AvatarKind = VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique;
+using AvatarParameterAccess = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
+using AvatarParameterAccessEnum = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
 
 namespace AltNetIk
 {
@@ -19,7 +22,10 @@ namespace AltNetIk
             bool[] boneList = new bool[UnityEngine.HumanTrait.BoneCount];
             var parameters = new List<AvatarParameterAccess>();
             var expressionParameters = new List<string>();
-            var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameterAccess_0;
+            // field_Private_AvatarPlayableController_0
+            // field_Private_Dictionary_2_Int32_AvatarParameterAccess_0
+            var bigData = avatarManager.field_Private_MonoBehaviour1PublicAcBoAcHaBo1AcInFu4Unique_0;
+            var avatarParams = bigData.field_Private_Dictionary_2_Int32_ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique_0;
             var avatarDescriptor = avatarManager.field_Private_VRCAvatarDescriptor_0;
             if (avatarDescriptor?.expressionParameters != null)
             {
@@ -38,7 +44,7 @@ namespace AltNetIk
                 foreach (var param in avatarParams.Values)
                 {
                     paramIndex++;
-                    var parameterName = param.field_Private_String_0;
+                    var parameterName = param.field_Protected_String_0;
                     if (parameterName == "IsLocal") // skip IsLocal
                         continue;
                     if (paramIndex > 20 && !expressionParameters.Contains(parameterName)) // keep only defaults and expression parameters
@@ -47,15 +53,15 @@ namespace AltNetIk
                     var type = param.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0;
                     switch (type)
                     {
-                        case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
+                        case AvatarParameterAccessEnum.Bool:
                             boolParams++;
                             break;
 
-                        case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
+                        case AvatarParameterAccessEnum.Int:
                             intParams++;
                             break;
 
-                        case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
+                        case AvatarParameterAccessEnum.Float:
                             floatParams++;
                             break;
                     }
@@ -72,7 +78,7 @@ namespace AltNetIk
                 PipelineManager pipelineManager = animator.gameObject.GetComponent<PipelineManager>();
                 if (pipelineManager?.blueprintId == "avtr_749445a8-d9bf-4d48-b077-d18b776f66f7")
                 {
-                    avatarKind = (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Loading;
+                    avatarKind = (short)AvatarKind.Loading;
                     isSdk2 = false; // skip SDK2 check for loading avatar
                 }
             }
@@ -182,7 +188,8 @@ namespace AltNetIk
             bool[] boneList = new bool[UnityEngine.HumanTrait.BoneCount];
             var parameters = new List<AvatarParameterAccess>();
             var expressionParameters = new List<string>();
-            var avatarParams = avatarManager.field_Private_AvatarPlayableController_0?.field_Private_Dictionary_2_Int32_AvatarParameterAccess_0;
+            var bigData = avatarManager.field_Private_MonoBehaviour1PublicAcBoAcHaBo1AcInFu4Unique_0;
+            var avatarParams = bigData?.field_Private_Dictionary_2_Int32_ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique_0;
             var avatarDescriptor = avatarManager.field_Private_VRCAvatarDescriptor_0;
             if (avatarDescriptor?.expressionParameters != null)
             {
@@ -199,13 +206,13 @@ namespace AltNetIk
                 foreach (var param in avatarParams.Values)
                 {
                     paramIndex++;
-                    var parameterName = param.field_Private_String_0;
+                    var parameterName = param.field_Protected_String_0;
                     if (parameterName == "IsLocal") // skip IsLocal
                         continue;
                     if (paramIndex > 20 && !expressionParameters.Contains(parameterName)) // keep only defaults and expression parameters
                         continue;
 
-                    if (param.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0 == AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float)
+                    if (param.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0 == AvatarParameterAccessEnum.Float)
                         floatParamCount++;
 
                     parameters.Add(param);
@@ -228,7 +235,7 @@ namespace AltNetIk
                 PipelineManager pipelineManager = animator.gameObject.GetComponent<PipelineManager>();
                 if (pipelineManager?.blueprintId == "avtr_749445a8-d9bf-4d48-b077-d18b776f66f7")
                 {
-                    avatarKind = (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Loading;
+                    avatarKind = (short)AvatarKind.Loading;
                     isSdk2 = false; // skip SDK2 check for loading avatar
                 }
             }

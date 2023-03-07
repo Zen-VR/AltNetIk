@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using VRC.Core;
 using VRC.Networking.Pose;
+using Player = MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique;
 
 namespace AltNetIk
 {
@@ -27,10 +28,11 @@ namespace AltNetIk
             //AltNetIk.Instance.HarmonyInstance.Patch(typeof(LoadBalancingClient).GetMethods().Single(m => m.Name.StartsWith("Method_Private_Void_OperationResponse_") && CheckUsing(m, "OnCreatedRoom")), null, new HarmonyMethod(typeof(Patches).GetMethod(nameof(OnPhotonInstanceChanged), BindingFlags.NonPublic | BindingFlags.Static)));
             //AltNetIk.Logger.Msg("6");
 
-            var field0 = NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_Player_0;
-            var field1 = NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_Player_2;
-            field0.field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<VRC.Player>((player) => { if (player != null) AltNetIk.Instance.OnPlayerJoined(player); }));
-            field1.field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<VRC.Player>((player) => { if (player != null) AltNetIk.Instance.OnPlayerLeft(player); }));
+            // field_Internal_VRCEventDelegate_1_Player_0
+            var field0 = NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique_0;
+            var field1 = NetworkManager.field_Internal_Static_NetworkManager_0.field_Internal_VRCEventDelegate_1_MonoBehaviourPublicAPOb_vOb_pBo_UObBoVRUnique_2;
+            field0.field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<Player>((player) => { if (player != null) AltNetIk.Instance.OnPlayerJoined(player); }));
+            field1.field_Private_HashSet_1_UnityAction_1_T_0.Add(new Action<Player>((player) => { if (player != null) AltNetIk.Instance.OnPlayerLeft(player); }));
 
             AltNetIk.Logger.Msg("Patches done");
         }

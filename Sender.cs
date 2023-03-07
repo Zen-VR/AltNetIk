@@ -5,6 +5,8 @@ using System;
 using System.Collections;
 using UnityEngine;
 using VRC.Playables;
+using AvatarKind = VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique;
+using AvatarParameterAccessEnum = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
 
 namespace AltNetIk
 {
@@ -85,26 +87,26 @@ namespace AltNetIk
             foreach (var parameter in senderPlayerData.parameters)
             {
                 var type = parameter.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0;
-                if (floatPrecision && type == AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float)
-                    type = (AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique)10; // 2 byte float
+                if (floatPrecision && type == AvatarParameterAccessEnum.Float)
+                    type = (AvatarParameterAccessEnum)10; // 2 byte float
 
                 paramData[byteIndex++] = (byte)type;
                 switch (type)
                 {
-                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
-                        paramData[byteIndex++] = Convert.ToByte(parameter.field_Private_Boolean_0);
+                    case AvatarParameterAccessEnum.Bool:
+                        paramData[byteIndex++] = Convert.ToByte((bool)parameter.field_Protected_Boolean_0);
                         break;
 
-                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
-                        paramData[byteIndex++] = (byte)parameter.field_Private_Int32_1;
+                    case AvatarParameterAccessEnum.Int:
+                        paramData[byteIndex++] = (byte)parameter.field_Protected_Int32_1;
                         break;
 
-                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
-                        paramData[byteIndex++] = Serializers.SerializeFloat(parameter.field_Private_Single_0);
+                    case AvatarParameterAccessEnum.Float:
+                        paramData[byteIndex++] = Serializers.SerializeFloat(parameter.field_Protected_Single_0);
                         break;
 
-                    case (AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique)10:
-                        Serializers.SerializeFloatAsShortBytes(ref paramData, ref byteIndex, parameter.field_Private_Single_0);
+                    case (AvatarParameterAccessEnum)10:
+                        Serializers.SerializeFloatAsShortBytes(ref paramData, ref byteIndex, parameter.field_Protected_Single_0);
                         break;
                 }
             }
@@ -152,8 +154,8 @@ namespace AltNetIk
 
         public void UpdateAllowedToSend(PlayerData playerData)
         {
-            if ((playerData.isSdk2 && playerData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom) ||
-                playerData.playerAvatarManager.field_Public_VRC_StationInternal_0?.prop_PhotonView_0 != null)
+            // playerAvatarManager.field_Public_VRC_StationInternal_0?.prop_PhotonView_0 != null
+            if (playerData.isSdk2 && playerData.avatarKind == (short)AvatarKind.Custom)
             {
                 // check if seated in station and if it's synced
                 // check if custom avatar is SDk2

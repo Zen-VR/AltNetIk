@@ -12,6 +12,10 @@ using Object = UnityEngine.Object;
 using Quaternion = System.Numerics.Quaternion;
 using Transform = UnityEngine.Transform;
 using Vector3 = System.Numerics.Vector3;
+using AvatarKind = VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique;
+using AvatarParameterAccess = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique;
+using AvatarParameterAccessEnum = ObjectPublicIAnimParameterAccessObStInBoSiAcInBoOb2Unique.EnumNPublicSealedvaUnBoInFl5vUnique;
+using HandGestureController = MonoBehaviourPublicAnObSiObBoSiStObBoAcUnique;
 
 namespace AltNetIk
 {
@@ -48,7 +52,7 @@ namespace AltNetIk
                     packetData.frozen = packet.frozen;
                     if (packet.frozen)
                     {
-                        if (hasBoneData && packet.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom && boneData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom)
+                        if (hasBoneData && packet.avatarKind == (short)AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom)
                             ToggleFreeze(packet.photonId, packet.frozen);
                     }
                     else
@@ -77,7 +81,7 @@ namespace AltNetIk
             }
             else
             {
-                if (hasBoneData && packet.frozen && packet.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom && boneData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom)
+                if (hasBoneData && packet.frozen && packet.avatarKind == (short)AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom)
                     ToggleFreeze(packet.photonId, packet.frozen);
 
                 ReceiverPacketData newPacketData = new ReceiverPacketData
@@ -188,7 +192,7 @@ namespace AltNetIk
                 boneData.playerTransform.SetPositionAndRotation(playerPosition.ToUnity(), playerRotation.ToUnity());
                 if (boneData.transforms.Length > 0 && boneData.transforms[0] != null && packetData.boneCount > 0)
                 {
-                    if (packetData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom && boneData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom)
+                    if (packetData.avatarKind == (short)AvatarKind.Custom && boneData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Custom)
                     {
                         Quaternion hipRotation = Quaternion.Slerp(dataBankB.boneRotations[0], dataBankA.boneRotations[0], deltaFloat);
 
@@ -239,7 +243,7 @@ namespace AltNetIk
                 if (paramCount < 19)
                     return;
 
-                var isFallback = playerData.avatarKind == (short)VRCAvatarManager.EnumNPublicSealedvaUnLoErBlSaPeSuFaCuUnique.Fallback;
+                var isFallback = playerData.avatarKind == (short)AvatarKind.Fallback;
                 if (playerData.parameters.Count != paramCount)
                     isFallback = true;
 
@@ -252,22 +256,22 @@ namespace AltNetIk
 
                     var parameter = playerData.parameters[i];
                     var type = parameter.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0;
-                    var senderType = (AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique)packet.paramData[byteIndex++];
-                    if (type != senderType && senderType != (AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique)10)
+                    var senderType = (AvatarParameterAccessEnum)packet.paramData[byteIndex++];
+                    if (type != senderType && senderType != (AvatarParameterAccessEnum)10)
                     {
                         return;
                     }
 
                     switch (senderType)
                     {
-                        case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
+                        case AvatarParameterAccessEnum.Bool:
                             if (type != senderType)
                                 return;
                             var boolParam = packet.paramData[byteIndex++] != 0;
                             BoolPropertySetter(parameter.Pointer, boolParam);
                             break;
 
-                        case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
+                        case AvatarParameterAccessEnum.Int:
                             if (type != senderType)
                                 return;
                             var intParam = packet.paramData[byteIndex++];
@@ -280,15 +284,15 @@ namespace AltNetIk
                             //    playerData.playerHandGestureController.field_Private_Gesture_2 = (HandGestureController.Gesture)intParam;
                             break;
 
-                        case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
+                        case AvatarParameterAccessEnum.Float:
                             if (type != senderType)
                                 return;
                             var floatParam = Serializers.DeserializeFloat(packet.paramData[byteIndex++]);
                             FloatPropertySetter(parameter.Pointer, floatParam);
                             break;
 
-                        case (AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique)10:
-                            if (type != AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float)
+                        case (AvatarParameterAccessEnum)10:
+                            if (type != AvatarParameterAccessEnum.Float)
                                 return;
 
                             var b0 = packet.paramData[byteIndex++];
@@ -478,17 +482,17 @@ namespace AltNetIk
             {
                 switch (parameter.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0)
                 {
-                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
+                    case AvatarParameterAccessEnum.Bool:
                         if (!boolParamsInUse.Contains(parameter.Pointer))
                             boolParamsInUse.Add(parameter.Pointer);
                         break;
 
-                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
+                    case AvatarParameterAccessEnum.Int:
                         if (!intParamsInUse.Contains(parameter.Pointer))
                             intParamsInUse.Add(parameter.Pointer);
                         break;
 
-                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
+                    case AvatarParameterAccessEnum.Float:
                         if (!floatParamsInUse.Contains(parameter.Pointer))
                             floatParamsInUse.Add(parameter.Pointer);
                         break;
@@ -502,15 +506,15 @@ namespace AltNetIk
             {
                 switch (parameter.field_Public_EnumNPublicSealedvaUnBoInFl5vUnique_0)
                 {
-                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Bool:
+                    case AvatarParameterAccessEnum.Bool:
                         boolParamsInUse.Remove(parameter.Pointer);
                         break;
 
-                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Int:
+                    case AvatarParameterAccessEnum.Int:
                         intParamsInUse.Remove(parameter.Pointer);
                         break;
 
-                    case AvatarParameterAccess.EnumNPublicSealedvaUnBoInFl5vUnique.Float:
+                    case AvatarParameterAccessEnum.Float:
                         floatParamsInUse.Remove(parameter.Pointer);
                         break;
                 }
